@@ -8,12 +8,21 @@ public class Section {
     private int enrolled;
     private TimeSlot time;
 
-    public Section() {
-
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
+        this.capacity = capacity;
+        this.enrolled = enrolled;
+        this.time = time;
     }
 
     public boolean isFull() {
         return enrolled >= capacity;
+    }
+
+    public boolean hasTimeConflict(Section other) {
+        return false;
     }
 
     public String getCourseCode() {

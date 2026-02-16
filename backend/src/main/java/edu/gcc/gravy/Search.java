@@ -9,7 +9,7 @@ public class Search {
     private List<Filter> activeFilters;
     private String searchQuery;
 
-    public Search(String searchQuery) {
+    public Search(String searchQuery) { // Use getCourseCode() from Section to see course code format (These should match based on the database)
         this.searchQuery = searchQuery;
         allSections = new ArrayList<>();
         activeFilters = new ArrayList<>();

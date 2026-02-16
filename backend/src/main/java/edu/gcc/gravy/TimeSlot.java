@@ -1,14 +1,15 @@
 package edu.gcc.gravy;
 
-import java.sql.Time;
+import java.time.LocalTime;
 import java.util.Set;
 
 public class TimeSlot {
-    private Time startTime;
-    private Time endTime;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private Set<Day> days;
+    private static final LocalTime DAY_START = LocalTime.of(8, 0);
 
-    public TimeSlot(Time startTime, Time endTime, Set<Day> days) {
+    public TimeSlot(LocalTime startTime, LocalTime endTime, Set<Day> days) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.days = days;
@@ -26,19 +27,63 @@ public class TimeSlot {
         return days;
     }
 
-    public int getDuration() {
-        return -1;
+    public boolean[] getDayNumbers() { // Used for updateCalendar()
+        boolean[] result = new boolean[5];
+        Day[] allDays = Day.values();
+
+        for (int i = 0; i < 5; i++) {
+            result[i] = days.contains(allDays[i]);
+        }
+
+        return result;
+    }
+
+    public boolean[] getSlotNumbers() {
+        boolean[] result = new boolean[26];
+
+        int startIndex = (startTime.toSecondOfDay() - DAY_START.toSecondOfDay()) / (30 * 60);
+        int endIndex = (endTime.toSecondOfDay() - DAY_START.toSecondOfDay()) / (30 * 60);
+
+        startIndex = Math.max(0, startIndex);
+        endIndex = Math.min(26, endIndex);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            result[i] = true;
+        }
+
+        return result;
+    }
+
+    public int getDuration() { // Returns number of minutes in class
+        return (int) Duration.between(startTime, endTime).toMinutes();
+    }
+
+    private boolean sharesDay(Timeslot other) {
+        for (Day day: days) {
+            if (other.days.contains(day)) return true;
+        }
+
+        return false;
     }
 
     public boolean overlaps(TimeSlot other) {
-        return false;
+        if(!sharesDay(other)) return false;
+
+        return startTime.isBefore(other.endTime) && other.startTime().isBefore(endTime);
     }
 
-    public boolean isBefore(TimeSlot other) {
-        return false;
+    public boolean startsAfter(LocalTime time) {
+        return !startTime.isBeofore(time);
     }
 
-    public boolean isAfter(TimeSlot other) {
-        return false;
+    public boolean endsBefore(LocalTime time) {
+        return !endTime.isAfter(time);
+    }
+
+    public boolean occursOn(Set<Day> otherDays) {
+        for (Day day: otherDays) {
+            if (!days.contains(day)) return false;
+        }
+        return true;
     }
 }
