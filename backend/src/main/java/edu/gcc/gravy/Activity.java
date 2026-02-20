@@ -16,4 +16,18 @@ public class Activity {
     public TimeSlot getTime() {
         return time;
     }
+
+    @Override
+    public boolean equals(Object o) { // Override for quicker removeActivity() in Schedule
+        if (this == o) return true;
+        if (!(o instanceof Activity)) return false;
+        Activity a = (Activity) o;
+        return Objects.equals(time, a.time)
+                && Objects.equals(name, a.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(time, name);
+    }
 }

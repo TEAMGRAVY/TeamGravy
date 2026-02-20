@@ -66,6 +66,14 @@ public class TimeSlot {
         return false;
     }
 
+    private boolean sharesDay(Set<Day> other) {
+        for (Day day: days) {
+            if (other.contains(day)) return true;
+        }
+
+        return false;
+    }
+
     public boolean overlaps(TimeSlot other) {
         if(!sharesDay(other)) return false;
 

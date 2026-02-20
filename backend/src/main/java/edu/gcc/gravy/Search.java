@@ -32,7 +32,7 @@ public class Search {
         return currentResults;
     }
 
-    public void reset() {
+    public void reset() { // When the user provides a new searchQuery
         allSections = new ArrayList<>();
         activeFilters = new ArrayList<>();
         currentResults = allSections;

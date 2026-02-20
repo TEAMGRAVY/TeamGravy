@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Schedule {
+    private Student student;
     private String name;
     private List<Section> sections;
     private List<Activity> activities;
@@ -11,15 +12,15 @@ public class Schedule {
     private String errorMessage;
     private boolean[][] calendar = new boolean[5][26]; // Used for quick checks of time conflicts & updating UI checkboxes
 
-    public Schedule(String name, String term) {
+    public Schedule(Student student, String name, String term) {
+        this.student = student;
         this.name = name;
         this.term = term;
         sections = new ArrayList<>();
         activities = new ArrayList<>();
     }
 
-    public boolean addSection(Section section) {
-
+    public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
         boolean timeConflict = false;
         boolean sectionFull = false;
         for (Section other : sections) { // Scan for either error
@@ -31,34 +32,100 @@ public class Schedule {
             }
         }
 
+        for (Activity other: activities) { // Scan for conflict with activity
+            if (!timeConflict) {
+                timeConflict = section.hasTimeConflict(other);
+            }
+        }
+
         if (timeConflict || sectionFull) { // Error occured
             getErrorMessage(timeConflict, sectionFull); // Change later based on GUI
             return false;
         }
 
-        sections.add(section);
-        updateCalendar(section.getTime());
-        return true;
-    }
-
-    public boolean removeSection(Section section) {
+        if(addCalendar(section.getTime())) {
+            sections.add(section); // should this increase the section's enrolled? - Probably this is separate from myGCC so no
+            return true;
+        }
         return false;
     }
 
-    public boolean updateCalendar(TimeSlot time) {
-
+    public boolean removeSection(Section section) {
+        if (sections.remove(section)) {
+            removeCalendar(section.getTime());
+            return true;
+        }
+        return false;
     }
 
     public boolean addActivity(Activity activity) {
+        boolean timeConflict = false;
+        for (Section other : sections) { // Scan for either error
+            if (!timeConflict) {
+                timeConflict = section.hasTimeConflict(other);
+            }
+        }
+
+        for (Activity other: activities) { // Scan for conflict with activity
+            if (!timeConflict) {
+                timeConflict = section.hasTimeConflict(other);
+            }
+        }
+
+        if (timeConflict) { // Error occured
+            getErrorMessage(timeConflict, false); // Change later based on GUI
+            return false;
+        }
+
+        if(addCalendar(activity.getTime())) {
+            activities.add(activity);
+            return true;
+        }
         return false;
     }
 
     public boolean removeActivity(Activity activity) {
+        if (activities.remove(activity)) {
+            removeCalendar(activity.getTime());
+            return true;
+        }
         return false;
     }
 
+    public boolean addCalendar(TimeSlot time) {
+        boolean[] cols = time.getDayNumbers();
+        boolean[] rows = time.getSlotNumbers();
+
+        for (int r = 0; r < 5; r++) {
+            for (int c = 0; c < 26; c++) {
+                if(rows[r] && cols[c]) {
+                    if (calendar[r][c]) return false;
+                    calendar[r][c] = true;
+                }
+            }
+        }
+    }
+
+    public void removeCalendar(TimeSlot time) {
+        boolean[] cols = time.getDayNumbers();
+        boolean[] rows = time.getSlotNumbers();
+
+        for (int r = 0; r < 5; r++) {
+            for (int c = 0; c < 26; c++) {
+                if(rows[r] && cols[c]) {
+                    calendar[r][c] = false;
+                }
+            }
+        }
+    }
+
     public int getTotalCredits() {
-        return -1;
+        int credits = 0;
+        for (Section section: sections) {
+            credits += section.getCourse().getCreditHours();
+        }
+
+        return credits;
     }
 
     public int getDaysWithoutClass() {

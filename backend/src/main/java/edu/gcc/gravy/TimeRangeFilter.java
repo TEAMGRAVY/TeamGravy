@@ -18,6 +18,21 @@ public class TimeRangeFilter extends Filter {
 
     @Override
     public List<Section> apply(List<Section> sections) {
+        List<Section> result = new ArrayList<>();
+        for (Section section : sections) {
+            if (section.getTime().sharesDay(days)) {
+                if (earliestTime == NULL && latestTime == NULL) { // No time constraints
+                    result.add(section);
+                } else if (earliestTime == NULL) {
+                    if (latestTime.isAfter(section.getTime().getStartTime())) result.add(section);
+                } else if (latestTime == NULL) {
+
+                } else { // Time constraints for both
+
+                }
+
+            }
+        }
         return List.of();
     }
 }
