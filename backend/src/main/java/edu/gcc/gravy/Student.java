@@ -16,7 +16,7 @@ public class Student {
         this.minor = minor;
         this.year = year;
         this.schedules = new ArrayList<>();
-        this.completedCourses = new ArrayList<>(); // Read in from db later with addCompletedCourses?
+        this.completedCourses = new ArrayList<>();
     }
 
     public void createSchedule(String name, String term) {
