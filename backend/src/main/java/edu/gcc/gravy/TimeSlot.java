@@ -81,7 +81,7 @@ public class TimeSlot {
     }
 
     public boolean startsAfter(LocalTime time) {
-        return !startTime.isBeofore(time);
+        return !startTime.isBefore(time);
     }
 
     public boolean endsBefore(LocalTime time) {

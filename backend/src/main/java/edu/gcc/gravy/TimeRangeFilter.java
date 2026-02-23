@@ -9,7 +9,7 @@ public class TimeRangeFilter extends Filter {
     private LocalTime latestTime;
     private Set<Day> days;
 
-    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) { // Are these times just based on the startTime of the section?
+    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) { // These are based off the startTime of the section
         super(FilterType.TIMERANGE);
         this.earliestTime = earliestTime;
         this.latestTime = latestTime;
@@ -31,29 +31,6 @@ public class TimeRangeFilter extends Filter {
             if (latestTime != null && startTime.isAfter(latestTime)) continue;
 
             result.add(section); // If the section passed all filters
-
-            // Probably less efficient version of the same logic:
-//            if (days != null) { // Days were selected in the filter
-//                if (section.getTime().sharesDay(days)) { // Matches days selected
-//                    if (earliestTime == null && latestTime == null) { // No time constraints
-//                        result.add(section);
-//                    } else if (earliestTime == null) { // User only selected latestTime
-//                        if (latestTime.isAfter(section.getTime().getStartTime())) result.add(section);
-//                    } else if (latestTime == null) { // User only selected earliestTime
-//                        if (earliestTime.isBefore(section.getTime().getStartTime())) result.add(section);
-//                    } else { // Time constraints for both
-//                        if(latestTime.isAfter(section.getTime().getStartTime()) && earliestTime.isBefore(section.getTime().getStartTime())) result.add(section);
-//                    }
-//                }
-//            } else { // No days selected, just time(s) - Then assume at least one time constraint
-//                if (earliestTime == null) {
-//                    if (latestTime.isAfter(section.getTime().getStartTime())) result.add(section);
-//                } else if (latestTime == null) {
-//                    if (earliestTime.isBefore(section.getTime().getStartTime())) result.add(section);
-//                } else { // Time constraints for both
-//                    if(latestTime.isAfter(section.getTime().getStartTime()) && earliestTime.isBefore(section.getTime().getStartTime())) result.add(section);
-//                }
-//            }
         }
         return result;
     }
