@@ -24,13 +24,11 @@ public class Section {
     }
 
     public boolean hasTimeConflict(Section other) {
-        if (time.overlaps(other.getTime())) return true;
-        return false;
+        return time.overlaps(other.getTime());
     }
 
     public boolean hasTimeConflict(Activity other) {
-        if (time.overlaps(other.getTime())) return true;
-        return false;
+        return time.overlaps(other.getTime());
     }
 
     public String getCourseCode() {
