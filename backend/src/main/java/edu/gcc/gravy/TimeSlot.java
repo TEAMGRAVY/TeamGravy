@@ -71,7 +71,7 @@ public class TimeSlot {
         return false;
     }
 
-    private boolean sharesDay(Set<Day> other) {
+    boolean sharesDay(Set<Day> other) {
         for (Day day: days) {
             if (other.contains(day)) return true;
         }

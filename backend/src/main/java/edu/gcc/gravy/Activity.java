@@ -11,6 +11,10 @@ public class Activity {
         this.time = time;
     }
 
+    public boolean hasTimeConflict(Activity other) {
+        return time.overlaps(other.getTime());
+    }
+
     public String getName() {
         return name;
     }
