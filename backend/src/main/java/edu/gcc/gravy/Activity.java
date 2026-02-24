@@ -1,5 +1,7 @@
 package edu.gcc.gravy;
 
+import java.util.Objects;
+
 public class Activity {
     private String name;
     private TimeSlot time;

@@ -2,6 +2,7 @@ package edu.gcc.gravy;
 
 import java.time.LocalTime;
 import java.util.Set;
+import java.time.Duration;
 
 public class TimeSlot {
     private LocalTime startTime;
@@ -10,16 +11,20 @@ public class TimeSlot {
     private static final LocalTime DAY_START = LocalTime.of(8, 0);
 
     public TimeSlot(LocalTime startTime, LocalTime endTime, Set<Day> days) {
+        if (endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("End time must be after start time.");
+        }
+
         this.startTime = startTime;
         this.endTime = endTime;
         this.days = days;
     }
 
-    public Time getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public Time getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
@@ -58,7 +63,7 @@ public class TimeSlot {
         return (int) Duration.between(startTime, endTime).toMinutes();
     }
 
-    private boolean sharesDay(Timeslot other) {
+    private boolean sharesDay(TimeSlot other) {
         for (Day day: days) {
             if (other.days.contains(day)) return true;
         }
@@ -77,11 +82,11 @@ public class TimeSlot {
     public boolean overlaps(TimeSlot other) {
         if(!sharesDay(other)) return false;
 
-        return startTime.isBefore(other.endTime) && other.startTime().isBefore(endTime);
+        return startTime.isBefore(other.endTime) && other.getStartTime().isBefore(endTime);
     }
 
     public boolean startsAfter(LocalTime time) {
-        return !startTime.isBeofore(time);
+        return !startTime.isBefore(time);
     }
 
     public boolean endsBefore(LocalTime time) {
