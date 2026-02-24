@@ -10,7 +10,8 @@ public class Schedule {
     private List<Activity> activities;
     private String term;
     private String errorMessage;
-    private boolean[][] calendar = new boolean[5][26]; // Used for quick checks of time conflicts & updating UI checkboxes
+    // [1/2 hour slot][weekday]
+    private boolean[][] calendar = new boolean[26][5]; // Used for quick checks of time conflicts & updating UI checkboxes
 
     public Schedule(Student student, String name, String term) {
         this.student = student;
@@ -22,23 +23,28 @@ public class Schedule {
 
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
         boolean timeConflict = false;
-        boolean sectionFull = false;
+        boolean sectionFull = section.isFull();
+
+        if (sectionFull) {
+            getErrorMessage(timeConflict, sectionFull);
+            return false;
+        }
+
         for (Section other : sections) { // Scan for either error
             if (!timeConflict) {
                 timeConflict = section.hasTimeConflict(other);
             }
-            if (!sectionFull) {
-                sectionFull = section.isFull();
+        }
+
+        if (!timeConflict) {
+            for (Activity other: activities) { // Scan for conflict with activity
+                if (!timeConflict) {
+                    timeConflict = section.hasTimeConflict(other);
+                }
             }
         }
 
-        for (Activity other: activities) { // Scan for conflict with activity
-            if (!timeConflict) {
-                timeConflict = section.hasTimeConflict(other);
-            }
-        }
-
-        if (timeConflict || sectionFull) { // Error occured
+        if (timeConflict) { // Error occured
             getErrorMessage(timeConflict, sectionFull); // Change later based on GUI
             return false;
         }
@@ -68,7 +74,7 @@ public class Schedule {
 
         for (Activity other: activities) { // Scan for conflict with activity
             if (!timeConflict) {
-                timeConflict = other.hasTimeConflict(activity);
+                timeConflict = activity.hasTimeConflict(other);
             }
         }
 
@@ -77,7 +83,7 @@ public class Schedule {
             return false;
         }
 
-        if(addCalendar(activity.getTime())) {
+        if (addCalendar(activity.getTime())) {
             activities.add(activity);
             return true;
         }
@@ -93,11 +99,11 @@ public class Schedule {
     }
 
     public boolean addCalendar(TimeSlot time) {
-        boolean[] cols = time.getDayNumbers();
-        boolean[] rows = time.getSlotNumbers();
+        boolean[] rows = time.getSlotNumbers(); // 26
+        boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 5; r++) {
-            for (int c = 0; c < 26; c++) {
+        for (int r = 0; r < 26; r++) {
+            for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     if (calendar[r][c]) return false;
                     calendar[r][c] = true;
@@ -108,11 +114,11 @@ public class Schedule {
     }
 
     public void removeCalendar(TimeSlot time) {
-        boolean[] cols = time.getDayNumbers();
-        boolean[] rows = time.getSlotNumbers();
+        boolean[] rows = time.getSlotNumbers(); // 26
+        boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 5; r++) {
-            for (int c = 0; c < 26; c++) {
+        for (int r = 0; r < 26; r++) {
+            for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     calendar[r][c] = false;
                 }
@@ -157,4 +163,7 @@ public class Schedule {
         return errorMessage;
     }
 
+    public boolean[][] getCalendar() {
+        return calendar;
+    }
 }
