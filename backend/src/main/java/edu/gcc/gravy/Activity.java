@@ -1,5 +1,7 @@
 package edu.gcc.gravy;
 
+import java.util.Objects;
+
 public class Activity {
     private String name;
     private TimeSlot time;
@@ -7,6 +9,10 @@ public class Activity {
     public Activity(String name, TimeSlot time) {
         this.name = name;
         this.time = time;
+    }
+
+    public boolean hasTimeConflict(Activity other) {
+        return time.overlaps(other.getTime());
     }
 
     public String getName() {

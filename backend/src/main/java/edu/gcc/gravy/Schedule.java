@@ -62,13 +62,13 @@ public class Schedule {
         boolean timeConflict = false;
         for (Section other : sections) { // Scan for either error
             if (!timeConflict) {
-                timeConflict = section.hasTimeConflict(other);
+                timeConflict = other.hasTimeConflict(activity);
             }
         }
 
         for (Activity other: activities) { // Scan for conflict with activity
             if (!timeConflict) {
-                timeConflict = section.hasTimeConflict(other);
+                timeConflict = activity.hasTimeConflict(other);
             }
         }
 
@@ -104,6 +104,7 @@ public class Schedule {
                 }
             }
         }
+        return true;
     }
 
     public void removeCalendar(TimeSlot time) {
