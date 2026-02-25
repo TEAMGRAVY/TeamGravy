@@ -11,7 +11,7 @@ Thumbs.db
 
 # Gradle
 /.gradle/
-/build/
+**/build/
 
 # Logs
 *.log
