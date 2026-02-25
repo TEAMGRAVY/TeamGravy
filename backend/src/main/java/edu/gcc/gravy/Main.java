@@ -1,6 +1,8 @@
 package edu.gcc.gravy;
 
-// @author Mark VanHorn
+/**
+ * @author: goettelsg24
+ */
 
 public class Main {
     public static void main(String[] args) {
