@@ -136,7 +136,21 @@ public class Schedule {
     }
 
     public int getDaysWithoutClass() {
-        return -1;
+        int daysWOClass = 0;
+        boolean noClass;
+
+        for (int c = 0; c < 5; c++) {
+            noClass = true;
+            for (int r = 0; r < 26; r++) {
+                if (calendar[r][c]) {
+                    noClass = false;
+                    break;
+                }
+            }
+            if (noClass) daysWOClass++;
+        }
+
+        return daysWOClass;
     }
 
     public int getLongestBreak() {

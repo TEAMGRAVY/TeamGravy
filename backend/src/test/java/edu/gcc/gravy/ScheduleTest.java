@@ -197,6 +197,8 @@ class ScheduleTest {
         assertEquals(0, schedule.getTotalCredits());
     }
 
+    // ---------- CALENDAR TESTS ----------
+
     @Test
     void addSection_updatesCalendar_correctly() {
         Schedule schedule = new Schedule(null, "Test", "Fall");
@@ -255,4 +257,72 @@ class ScheduleTest {
             }
         }
     }
+
+    // ---------- DAYS WITHOUT CLASS TESTS ----------
+
+    @Test
+    void getDaysWithoutClass_emptySchedule_returns5() {
+        Schedule schedule = schedule();
+
+        assertEquals(5, schedule.getDaysWithoutClass());
+    }
+
+    @Test
+    void getDaysWithoutClass_oneDayWithClass_returns4() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+
+        assertEquals(4, schedule.getDaysWithoutClass());
+    }
+
+    @Test
+    void getDaysWithoutClass_twoDaysWithClass_returns3() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        Section s2 = section(course(220, 3), 'A',
+                slot(11, 0, 12, 0, Day.WEDNESDAY));
+
+        schedule.addSection(s1);
+        schedule.addSection(s2);
+
+        assertEquals(3, schedule.getDaysWithoutClass());
+    }
+
+    @Test
+    void getDaysWithoutClass_allDaysHaveClass_returns0() {
+        Schedule schedule = schedule();
+
+        for (Day day : Day.values()) {
+            Section s = section(course(112, 3), 'A',
+                    slot(9, 0, 10, 0, day));
+            schedule.addSection(s);
+        }
+
+        assertEquals(0, schedule.getDaysWithoutClass());
+    }
+
+    @Test
+    void getDaysWithoutClass_multipleSectionsSameDay_countsOnce() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        Section s2 = section(course(220, 3), 'A',
+                slot(11, 0, 12, 0, Day.MONDAY));
+
+        schedule.addSection(s1);
+        schedule.addSection(s2);
+
+        // Only Monday has class
+        assertEquals(4, schedule.getDaysWithoutClass());
+    }
+
 }
