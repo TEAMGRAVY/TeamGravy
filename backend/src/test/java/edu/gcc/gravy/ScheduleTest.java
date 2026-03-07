@@ -255,4 +255,103 @@ class ScheduleTest {
             }
         }
     }
+
+    // ---------- ERROR MESSAGING ----------
+
+    @Test
+    void addSection_timeConflict_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112,3),'A',
+                slot(9,0,10,0,Day.MONDAY));
+
+        Section s2 = section(course(220,3),'A',
+                slot(9,30,10,30,Day.MONDAY));
+
+        schedule.addSection(s1);
+
+        assertFalse(schedule.addSection(s2));
+        assertTrue(schedule.getErrorMessage().contains("conflicts"));
+    }
+
+    @Test
+    void addSection_fullSection_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Section full = fullSection(course(112, 3), 'A',
+                slot(9,0,10,0, Day.MONDAY));
+
+        assertFalse(schedule.addSection(full));
+
+        assertTrue(schedule.getErrorMessage().contains("full"));
+    }
+
+    @Test
+    void addSection_activityConflict_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Activity gym = activity("Gym",
+                slot(10,0,11,0,Day.MONDAY));
+
+        Section cs112 = section(course(112,3),'A',
+                slot(10,30,11,30,Day.MONDAY));
+
+        schedule.addActivity(gym);
+
+        assertFalse(schedule.addSection(cs112));
+
+        assertTrue(schedule.getErrorMessage().contains("activity"));
+    }
+
+    @Test
+    void addActivity_sectionConflict_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Section cs112 = section(course(112,3),'A',
+                slot(10,0,11,0,Day.MONDAY));
+
+        Activity gym = activity("Gym",
+                slot(10,30,11,30,Day.MONDAY));
+
+        schedule.addSection(cs112);
+
+        assertFalse(schedule.addActivity(gym));
+
+        assertTrue(schedule.getErrorMessage().contains("section"));
+    }
+
+    @Test
+    void addActivity_activityConflict_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Activity gym = activity("Gym",
+                slot(12,0,13,0,Day.MONDAY));
+
+        Activity meeting = activity("Meeting",
+                slot(12,30,13,30,Day.MONDAY));
+
+        schedule.addActivity(gym);
+
+        assertFalse(schedule.addActivity(meeting));
+
+        assertTrue(schedule.getErrorMessage().contains("activity"));
+    }
+
+    @Test
+    void addSection_success_clearsPreviousError() {
+        Schedule schedule = schedule();
+
+        Section full = fullSection(course(112,3),'A',
+                slot(9,0,10,0,Day.MONDAY));
+
+        schedule.addSection(full);
+
+        Section s2 = section(course(220,3),'A',
+                slot(11,0,12,0,Day.MONDAY));
+
+        assertTrue(schedule.addSection(s2));
+
+        assertNull(schedule.getErrorMessage());
+    }
+
 }
