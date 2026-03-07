@@ -325,4 +325,173 @@ class ScheduleTest {
         assertEquals(4, schedule.getDaysWithoutClass());
     }
 
+    // ---------- LONGEST BREAK ----------
+
+    @Test
+    void getLongestBreak_emptySchedule_returns0() {
+        Schedule schedule = schedule();
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_singleClassDay_returns0() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(10, 0, 11, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_twoClasses_sameDay() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        Section s2 = section(course(220, 3), 'A',
+                slot(12, 0, 13, 0, Day.MONDAY));
+
+        schedule.addSection(s1);
+        schedule.addSection(s2);
+
+        // 10–12 = 2 hours
+        assertEquals(120, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_multipleDays_returnsLargest() {
+        Schedule schedule = schedule();
+
+        // Monday small break
+        schedule.addSection(section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY)));
+
+        schedule.addSection(section(course(220, 3), 'A',
+                slot(11, 0, 12, 0, Day.MONDAY)));
+
+        // Tuesday larger break
+        schedule.addSection(section(course(330, 3), 'A',
+                slot(8, 0, 9, 30, Day.TUESDAY)));
+
+        schedule.addSection(section(course(340, 3), 'A',
+                slot(14, 0, 15, 30, Day.TUESDAY)));
+
+        // 9:30–2 = 270
+        assertEquals(270, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_adjacentClasses_returns0() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        Section s2 = section(course(220, 3), 'A',
+                slot(10, 0, 11, 0, Day.MONDAY));
+
+        schedule.addSection(s1);
+        schedule.addSection(s2);
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_threeClasses_returnsLargestGap() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101, 3), 'A',
+                slot(8, 0, 9, 0, Day.MONDAY)));
+
+        schedule.addSection(section(course(102, 3), 'A',
+                slot(11, 0, 12, 0, Day.MONDAY)));
+
+        schedule.addSection(section(course(103, 3), 'A',
+                slot(15, 0, 16, 0, Day.MONDAY)));
+
+        // breaks:
+        // 9–11 = 120
+        // 12–15 = 180
+        assertEquals(180, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_multiSlotClasses_correctGap() {
+        Schedule schedule = schedule();
+
+        // TR style longer classes
+        schedule.addSection(section(course(201, 3), 'A',
+                slot(8, 0, 9, 30, Day.TUESDAY)));
+
+        schedule.addSection(section(course(202, 3), 'A',
+                slot(14, 0, 15, 30, Day.TUESDAY)));
+
+        // 9:30–2 = 270
+        assertEquals(270, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_labLengthClass() {
+        Schedule schedule = schedule();
+
+        // long lab
+        schedule.addSection(section(course(301, 4), 'A',
+                slot(8, 0, 11, 0, Day.MONDAY)));
+
+        schedule.addSection(section(course(302, 3), 'A',
+                slot(14, 0, 15, 0, Day.MONDAY)));
+
+        // 11–2 = 180
+        assertEquals(180, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_breakAcrossMultipleDays_usesLargest() {
+        Schedule schedule = schedule();
+
+        // Monday small break
+        schedule.addSection(section(course(101, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY)));
+
+        schedule.addSection(section(course(102, 3), 'A',
+                slot(11, 0, 12, 0, Day.MONDAY)));
+
+        // Wednesday large break
+        schedule.addSection(section(course(103, 3), 'A',
+                slot(8, 0, 9, 0, Day.WEDNESDAY)));
+
+        schedule.addSection(section(course(104, 3), 'A',
+                slot(15, 0, 16, 0, Day.WEDNESDAY)));
+
+        // 9–15 = 360
+        assertEquals(360, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_variedSlots() {
+        Schedule schedule = new Schedule(null, "Test", "Fall");
+
+        // M/W/F: two 30-min slots (9-10 and 12-1)
+        schedule.addSection(createTestSection("CS101", 3, Day.MONDAY, 9,0,10,0));
+        schedule.addSection(createTestSection("CS101", 3, Day.MONDAY, 12,0,13,0));
+        schedule.addSection(createTestSection("CS101", 3, Day.WEDNESDAY, 9,0,10,0));
+        schedule.addSection(createTestSection("CS101", 3, Day.WEDNESDAY, 12,0,13,0));
+        schedule.addSection(createTestSection("CS101", 3, Day.FRIDAY, 9,0,10,0));
+        schedule.addSection(createTestSection("CS101", 3, Day.FRIDAY, 12,0,13,0));
+
+        // T/R: three-slot classes (8-9:30, 14-15:30)
+        schedule.addSection(createTestSection("CS102", 3, Day.TUESDAY, 8,0,9,30));
+        schedule.addSection(createTestSection("CS102", 3, Day.TUESDAY, 14,0,15,30));
+        schedule.addSection(createTestSection("CS102", 3, Day.THURSDAY, 8,0,9,30));
+        schedule.addSection(createTestSection("CS102", 3, Day.THURSDAY, 14,0,15,30));
+
+        // Longest break = 9:30–2 PM = 270 min
+        assertEquals(270, schedule.getLongestBreak());
+    }
+
 }
