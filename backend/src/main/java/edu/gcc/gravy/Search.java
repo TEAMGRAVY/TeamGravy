@@ -7,8 +7,8 @@ public class Search {
     private List<Section> allSections;
     private List<Section> currentResults;
     private List<Filter> activeFilters;
-//jjjj
-    // both of these make up a Query
+
+    // both of these make up a Query.
     private final String codeQuery;
     private final String keywordQuery;
 
