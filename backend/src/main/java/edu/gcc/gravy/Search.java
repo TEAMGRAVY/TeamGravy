@@ -15,11 +15,14 @@ public class Search {
     public Search(String codeQuery, String keywordQuery) {
         this.codeQuery = codeQuery;
         this.keywordQuery = keywordQuery;
+
         this.activeFilters = new ArrayList<>();
-        this.allSections = runBaseSearch();
-        this.currentResults = allSections;
 
         // potentially implement going to library and finding "allSections" here
+
+        this.allSections = new ArrayList<>();
+        this.currentResults = runBaseSearch();
+
     }
 
     public List<Section> addFilter(Filter filter) {
@@ -47,8 +50,7 @@ public class Search {
 
     public void reset() {
         activeFilters = new ArrayList<>();
-        allSections = runBaseSearch();
-        currentResults = allSections;
+        currentResults = runBaseSearch();
     }
 
     public void setAllSections(List<Section> sections) {

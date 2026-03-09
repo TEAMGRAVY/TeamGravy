@@ -16,6 +16,14 @@ public class Section {
         return enrolled >= capacity;
     }
 
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setSectionID(char sectionID) {
+        this.sectionID = sectionID;
+    }
+
     public String getCourseCode() {
         return course.getDepartment() + " " + course.getCourseID() + " " + sectionID;
     }
