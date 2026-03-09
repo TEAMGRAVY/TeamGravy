@@ -35,15 +35,15 @@ class ScheduleTest {
         );
 
         // Use 'A' as sectionID, no professor needed for test
-        return new Section(course, 'A', "TestProf", 30, 0, timeSlot);
+        return new Section(course, 'A', "TestProf", 30, 0, timeSlot, false, "");
     }
 
     private Section section(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 10, t);
+        return new Section(c, id, "Dr. Smith", 30, 10, t, false, "");
     }
 
     private Section fullSection(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 30, t);
+        return new Section(c, id, "Dr. Smith", 30, 30, t, false, "");
     }
 
     private Activity activity(String name, TimeSlot t) {
