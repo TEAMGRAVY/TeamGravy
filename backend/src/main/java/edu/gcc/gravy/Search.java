@@ -7,24 +7,40 @@ public class Search {
     private List<Section> allSections;
     private List<Section> currentResults;
     private List<Filter> activeFilters;
-    private String searchQuery;
 
-    public Search(String searchQuery) {
-        this.searchQuery = searchQuery;
-        allSections = new ArrayList<>();
-        activeFilters = new ArrayList<>();
-        currentResults = allSections;
+    // both of these make up a Query.
+    private final String codeQuery;
+    private final String keywordQuery;
+
+    public Search(String codeQuery, String keywordQuery) {
+        this.codeQuery = codeQuery;
+        this.keywordQuery = keywordQuery;
+
+        this.activeFilters = new ArrayList<>();
+
+        // potentially implement going to library and finding "allSections" here
+
+        this.allSections = new ArrayList<>();
+        this.currentResults = runBaseSearch();
+
     }
 
-    public List<Section> addFilter(Filter fitler) {
-        activeFilters.add(fitler);
-        // Apply new filter
+    public List<Section> addFilter(Filter filter) {
+        activeFilters.add(filter);
+        currentResults = filter.apply(currentResults);
         return currentResults;
     }
 
     public List<Section> removeFilter(FilterType type) {
-        // Iterate through activeFilters and remove ones that match type
-        // Apply updated filters
+        activeFilters.removeIf(f -> f.getType() == type);
+
+        List<Section> results = runBaseSearch();
+
+        for (Filter f : activeFilters) {
+            results = f.apply(results);
+        }
+
+        currentResults = results;
         return currentResults;
     }
 
@@ -33,8 +49,39 @@ public class Search {
     }
 
     public void reset() {
-        allSections = new ArrayList<>();
         activeFilters = new ArrayList<>();
-        currentResults = allSections;
+        currentResults = runBaseSearch();
+    }
+
+    public void setAllSections(List<Section> sections) {
+        this.allSections = sections;
+        this.currentResults = runBaseSearch();
+    }
+
+    // R1a + R1b base search
+    private List<Section> runBaseSearch() {
+        List<Section> results = new ArrayList<>();
+
+        String codeQ = codeQuery == null ? "" : codeQuery.toLowerCase().trim();
+        String keyQ = keywordQuery == null ? "" : keywordQuery.toLowerCase().trim();
+
+        for (Section s : allSections) {
+            String code = (s.getCourseCode() == null) ? "" :
+                    s.getCourseCode().toLowerCase();
+
+            String title = (s.getCourse() != null &&
+                    s.getCourse().getTitle() != null)
+                    ? s.getCourse().getTitle().toLowerCase()
+                    : "";
+
+            boolean codeMatch = codeQ.isEmpty() || code.contains(codeQ);
+            boolean keywordMatch = keyQ.isEmpty() || title.contains(keyQ);
+
+            if (codeMatch && keywordMatch) {
+                results.add(s);
+            }
+        }
+
+        return results;
     }
 }
