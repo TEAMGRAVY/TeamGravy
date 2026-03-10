@@ -49,4 +49,30 @@ class DepartmentFilterTest {
             assertEquals("COMP", s.getCourse().getDepartment());
         }
     }
+    @Test
+    void applyWithEmptyList() {
+        DepartmentFilter filter = new DepartmentFilter("COMP");
+
+        List<Section> sections = new ArrayList<>();
+
+        List<Section> results = filter.apply(sections);
+
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void applyWithNoMatches() {
+
+        List<Section> sections = new ArrayList<>();
+
+        sections.add(makeSection(101,"Calculus I","MATH",'A'));
+        sections.add(makeSection(102,"Calculus II","MATH",'B'));
+
+        DepartmentFilter filter = new DepartmentFilter("COMP");
+
+        List<Section> results = filter.apply(sections);
+
+        assertTrue(results.isEmpty());
+    }
+
 }
