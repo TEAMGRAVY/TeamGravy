@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DepartmentFilterTest {
 
-    // Helper method to construct sections for testing
+    // Helper method to construct sections for testing.
     private Section makeSection(int id, String title, String department, char letter) {
 
         Course course = new Course(id, title, department, 3, "Fall");
