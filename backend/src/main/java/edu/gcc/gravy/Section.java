@@ -8,8 +8,23 @@ public class Section {
     private int enrolled;
     private TimeSlot time;
 
-    public Section() {
+    public Section(){
 
+    }
+
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
+        this.capacity = capacity;
+        this.enrolled = enrolled;
+        this.time = time;
+    }
+
+    public Section(Course course, char sectionID, String professor) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
     }
 
     public boolean isFull() {
@@ -39,6 +54,8 @@ public class Section {
     public String getProfessor() {
         return professor;
     }
+
+    public void setProfessor(String professor) { this.professor = professor;}
 
     public int getCapacity() {
         return capacity;
