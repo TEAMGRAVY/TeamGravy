@@ -23,10 +23,10 @@ class ProfessorFilterTest {
     @Test
     void getType() {
 
-        DepartmentFilter filter = new DepartmentFilter("COMP");
+        ProfessorFilter filter = new ProfessorFilter("COMP");
 
-        // The filter type should always be DEPARTMENT
-        assertEquals(FilterType.DEPARTMENT, filter.getType());
+        // The filter type should always be PROFESSOR
+        assertEquals(FilterType.PROFESSOR, filter.getType());
     }
 
 }
