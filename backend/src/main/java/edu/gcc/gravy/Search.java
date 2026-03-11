@@ -34,7 +34,7 @@ public class Search {
     public List<Section> removeFilter(FilterType type) {
         activeFilters.removeIf(f -> f.getType() == type);
 
-        List<Section> results = runBaseSearch();
+        List<Section> results = allSections;
 
         for (Filter f : activeFilters) {
             results = f.apply(results);
