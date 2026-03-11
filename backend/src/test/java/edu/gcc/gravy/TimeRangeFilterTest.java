@@ -48,7 +48,9 @@ class TimeRangeFilterTest {
                 "Dr. Miller",
                 30,
                 18,
-                slot
+                slot,
+                false,
+                ""
         );
     }
 

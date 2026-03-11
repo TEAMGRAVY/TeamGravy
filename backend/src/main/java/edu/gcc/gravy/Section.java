@@ -9,17 +9,21 @@ public class Section {
     private int capacity;
     private int enrolled;
     private TimeSlot time;
+    private boolean isOpen;
+    private String location;
 
     public Section() {
     }
 
-    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time, boolean isOpen, String location) {
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;
         this.capacity = capacity;
         this.enrolled = enrolled;
         this.time = time;
+        this.isOpen = isOpen;
+        this.location = location;
     }
 
     public Section(Course course, char sectionID, String professor) {
@@ -77,6 +81,10 @@ public class Section {
     public TimeSlot getTime() {
         return time;
     }
+
+    public boolean isOpen() { return  isOpen; }
+
+    public  String getLocation() { return location; }
 
     @Override
     public boolean equals(Object o) { // Override for quicker removeSection() in Schedule
