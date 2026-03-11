@@ -1,6 +1,7 @@
 package edu.gcc.gravy;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public class JSONSection {
     public int total_seats;
 
 
-    public static class time {
+    public class time {
         public String day;
         public String end_time;
         public String start_time;
@@ -40,26 +41,22 @@ public class JSONSection {
                             yield Set.of(Day.FRIDAY);
                         default:
                             yield Set.of();
-                    }
-
-
-
-                    );
+                    });
         }
 
     }
 
     public Section toSection(){
-
-        for (time curr : times){
-
+        TimeSlot[] timeSlots = new TimeSlot[times.size()];
+        for (int index = 0; index < times.size(); index++){
+            timeSlots[index] = times.get(index).toTimeSlot();
         }
 
-        Course currentCourse = new Course(number, name, subject, credits, semester);
-        Section currentSection = new Section(currentCourse, section.charAt(0), faculty[0], total_seats, total_seats-open_seats,
-                ;
+        Course course = new Course(number, name, subject, credits, semester);
 
-        return currentSection;
+        return new Section(course, section.charAt(0), faculty[0], total_seats, total_seats-open_seats,
+                timeSlots
+        );
     }
 
 }

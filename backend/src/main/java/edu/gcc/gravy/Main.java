@@ -40,7 +40,7 @@ public class Main {
 
             reader.beginArray();
             while (reader.hasNext()) {
-                sections.add(gson.fromJson(reader, JSONSection.class));
+                sections.add(((JSONSection)gson.fromJson(reader, JSONSection.class)).toSection());
             }
             reader.endArray();
 
