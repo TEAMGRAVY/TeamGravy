@@ -1,15 +1,16 @@
 package edu.gcc.gravy;
 
-import java.sql.Time;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class TimeRangeFilter extends Filter {
-    private Time earliestTime;
-    private Time latestTime;
+    private LocalTime earliestTime;
+    private LocalTime latestTime;
     private Set<Day> days;
 
-    public TimeRangeFilter(Time earliestTime, Time latestTime, Set<Day> days) {
+    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) { // Are these times just based on the startTime of the section?
         super(FilterType.TIMERANGE);
         this.earliestTime = earliestTime;
         this.latestTime = latestTime;
@@ -18,6 +19,21 @@ public class TimeRangeFilter extends Filter {
 
     @Override
     public List<Section> apply(List<Section> sections) {
-        return List.of();
+        List<Section> result = new ArrayList<>();
+        for (Section section : sections) {
+            // Check days if set - otherwise skip
+            if (days != null && !section.getTime().sharesDay(days)) continue;
+
+            LocalTime startTime = section.getTime().getStartTime();
+
+            // Check earliestTime if set
+            if (earliestTime != null && startTime.isBefore(earliestTime)) continue;
+            // Check latestTime if set
+            if (latestTime != null && startTime.isAfter(latestTime)) continue;
+
+            result.add(section); // If the section passed all filters
+
+        }
+        return result;
     }
 }
