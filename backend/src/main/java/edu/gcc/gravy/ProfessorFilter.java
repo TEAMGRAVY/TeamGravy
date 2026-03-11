@@ -16,10 +16,18 @@ public class ProfessorFilter extends Filter {
     public List<Section> apply(List<Section> sections) {
         List<Section> results = new ArrayList<>();
         for (Section section : sections){
-            if (Objects.equals(section.getProfessor(), professor)){
-                results.add(section);
+
+            ArrayList<String> sectionProfs = section.getProfessors();
+
+            for(String prof : sectionProfs){
+
+                if (Objects.equals(prof, professor)){
+                    results.add(section);
+
+                }
             }
         }
+
         return results;
     }
 }

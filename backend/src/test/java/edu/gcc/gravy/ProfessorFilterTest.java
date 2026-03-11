@@ -16,7 +16,9 @@ class ProfessorFilterTest {
         Section section = new Section();
         section.setCourse(course);
         section.setSectionID(letter);
-        section.setProfessor(professor);
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add(professor);
+        section.setProfessors(profs);
 
         return section;
     }
@@ -24,7 +26,9 @@ class ProfessorFilterTest {
     @Test
     void getType() {
 
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         // The filter type should always be PROFESSOR
         assertEquals(FilterType.PROFESSOR, filter.getType());
@@ -39,7 +43,9 @@ class ProfessorFilterTest {
         sections.add(makeSection(210,"Data Structures","COMP",'B',"Hutchins"));
         sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
 
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> results = filter.apply(sections);
 
@@ -47,13 +53,15 @@ class ProfessorFilterTest {
         assertEquals(2, results.size());
 
         for (Section s : results) {
-            assertEquals("Hutchins", s.getProfessor());
+            sectionProfs = s.getProfessors();
+            assertEquals("Hutchins", s.getProfessors());
         }
     }
 
     @Test
     void applyWithEmptyList() {
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> sections = new ArrayList<>();
 
@@ -72,7 +80,9 @@ class ProfessorFilterTest {
         sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
 
 
-        ProfessorFilter filter = new ProfessorFilter("Dickinson");
+        ArrayList<String> profsToSearchFor = new ArrayList<>();
+        profsToSearchFor.add("Dickinson");
+        ProfessorFilter filter = new ProfessorFilter(profsToSearchFor);
 
         List<Section> results = filter.apply(sections);
 
