@@ -29,6 +29,12 @@ public class Section {
 
     public boolean hasTimeConflict(Activity other) {
         return time.overlaps(other.getTime());
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setSectionID(char sectionID) {
+        this.sectionID = sectionID;
     }
 
     public String getCourseCode() {
