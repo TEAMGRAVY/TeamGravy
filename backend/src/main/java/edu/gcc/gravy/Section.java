@@ -8,7 +8,7 @@ public class Section {
     private int enrolled;
     private TimeSlot time;
 
-    public Section(){
+    public Section() {
 
     }
 

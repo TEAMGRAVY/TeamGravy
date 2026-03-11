@@ -51,4 +51,33 @@ class ProfessorFilterTest {
         }
     }
 
+    @Test
+    void applyWithEmptyList() {
+        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+
+        List<Section> sections = new ArrayList<>();
+
+        List<Section> results = filter.apply(sections);
+
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void applyWithNoMatches() {
+
+        List<Section> sections = new ArrayList<>();
+
+        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins"));
+        sections.add(makeSection(210,"Data Structures","COMP",'B',"Hutchins"));
+        sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
+
+
+        ProfessorFilter filter = new ProfessorFilter("Dickinson");
+
+        List<Section> results = filter.apply(sections);
+
+        assertTrue(results.isEmpty());
+    }
+
+
 }
