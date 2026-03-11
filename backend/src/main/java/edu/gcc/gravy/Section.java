@@ -1,5 +1,7 @@
 package edu.gcc.gravy;
 
+import java.util.Objects;
+
 public class Section {
     private Course course;
     private char sectionID;
@@ -8,12 +10,46 @@ public class Section {
     private int enrolled;
     private TimeSlot time;
 
-    public Section() {
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
+        this.capacity = capacity;
+        this.enrolled = enrolled;
+        this.time = time;
+    }
 
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
+        this.capacity = capacity;
+        this.enrolled = enrolled;
+        this.time = time;
+    }
+
+    public Section(Course course, char sectionID, String professor) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
     }
 
     public boolean isFull() {
         return enrolled >= capacity;
+    }
+
+    public boolean hasTimeConflict(Section other) {
+        return time.overlaps(other.getTime());
+    }
+
+    public boolean hasTimeConflict(Activity other) {
+        return time.overlaps(other.getTime());
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setSectionID(char sectionID) {
+        this.sectionID = sectionID;
     }
 
     public String getCourseCode() {
@@ -32,6 +68,8 @@ public class Section {
         return professor;
     }
 
+    public void setProfessor(String professor) { this.professor = professor;}
+
     public int getCapacity() {
         return capacity;
     }
@@ -42,5 +80,19 @@ public class Section {
 
     public TimeSlot getTime() {
         return time;
+    }
+
+    @Override
+    public boolean equals(Object o) { // Override for quicker removeSection() in Schedule
+        if (this == o) return true;
+        if (!(o instanceof Section)) return false;
+        Section s = (Section) o;
+        return sectionID == s.sectionID &&
+                Objects.equals(course, s.course); // Sections are uniquely defined by course & sectionID
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(course, sectionID);
     }
 }
