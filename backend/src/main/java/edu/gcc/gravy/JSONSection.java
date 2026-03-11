@@ -23,4 +23,9 @@ public class JSONSection {
         public String end_time;
         public String start_time;
     }
+
+    public Section toSection(){
+        Section current = new Section();
+    }
+
 }
