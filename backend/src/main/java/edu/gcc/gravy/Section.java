@@ -12,6 +12,9 @@ public class Section {
     private boolean isOpen;
     private String location;
 
+    public Section() {
+    }
+
     public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time, boolean isOpen, String location) {
         this.course = course;
         this.sectionID = sectionID;
@@ -21,6 +24,12 @@ public class Section {
         this.time = time;
         this.isOpen = isOpen;
         this.location = location;
+    }
+
+    public Section(Course course, char sectionID, String professor) {
+        this.course = course;
+        this.sectionID = sectionID;
+        this.professor = professor;
     }
 
     public boolean isFull() {
@@ -33,6 +42,14 @@ public class Section {
 
     public boolean hasTimeConflict(Activity other) {
         return time.overlaps(other.getTime());
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setSectionID(char sectionID) {
+        this.sectionID = sectionID;
     }
 
     public String getCourseCode() {
@@ -50,6 +67,8 @@ public class Section {
     public String getProfessor() {
         return professor;
     }
+
+    public void setProfessor(String professor) { this.professor = professor;}
 
     public int getCapacity() {
         return capacity;
