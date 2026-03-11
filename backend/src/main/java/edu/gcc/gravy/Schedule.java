@@ -135,11 +135,50 @@ public class Schedule {
     }
 
     public int getDaysWithoutClass() {
-        return -1;
+        int daysWOClass = 0;
+        boolean noClass;
+
+        for (int c = 0; c < 5; c++) {
+            noClass = true;
+            for (int r = 0; r < 26; r++) {
+                if (calendar[r][c]) {
+                    noClass = false;
+                    break;
+                }
+            }
+            if (noClass) daysWOClass++;
+        }
+
+        return daysWOClass;
     }
 
     public int getLongestBreak() {
-        return -1;
+        int maxBreak = 0;
+
+        for (int c = 0; c < 5; c++) {
+            int prevEnd = -1;
+            int r = 0;
+            while (r < 26) {
+                int start = r;
+                if (calendar[r][c]) { // Start of a class
+                    while (calendar[r][c] && r < 26) { // Find length of the class
+                        r++;
+                    }
+                    int end = r - 1; // End of the class
+
+                    if (prevEnd != -1) {
+                        int classBreak = start - prevEnd - 1; // 30 min blocks in between the classes
+                        if (classBreak > maxBreak) { maxBreak = classBreak; }
+                    }
+
+                    prevEnd = end;
+                } else { // No class found
+                    r++;
+                }
+            }
+        }
+
+        return maxBreak * 30; // Max break in minutes
     }
 
     public String getScheduleName() {

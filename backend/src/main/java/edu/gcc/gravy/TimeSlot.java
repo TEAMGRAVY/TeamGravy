@@ -92,11 +92,4 @@ public class TimeSlot {
     public boolean endsBefore(LocalTime time) {
         return !endTime.isAfter(time);
     }
-
-    public boolean occursOn(Set<Day> otherDays) {
-        for (Day day: otherDays) {
-            if (!days.contains(day)) return false;
-        }
-        return true;
-    }
 }
