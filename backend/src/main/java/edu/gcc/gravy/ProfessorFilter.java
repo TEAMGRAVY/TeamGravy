@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ProfessorFilter extends Filter {
-    private String professor;
+    private final String professor;
 
     public ProfessorFilter(String professor) {
         super(FilterType.PROFESSOR);
@@ -23,7 +23,7 @@ public class ProfessorFilter extends Filter {
 
                 if (Objects.equals(prof, professor)){
                     results.add(section);
-
+                    break;
                 }
             }
         }

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ProfessorFilterTest {
 
-    // Helper method to construct sections for testing.
+    // Helper methods to construct sections for testing.
     private Section makeSection(int id, String title, String department, char letter, String professor) {
 
         Course course = new Course(id, title, department, 3, "Fall");
@@ -18,6 +18,21 @@ class ProfessorFilterTest {
         section.setSectionID(letter);
         ArrayList<String> profs = new ArrayList<>();
         profs.add(professor);
+        section.setProfessors(profs);
+
+        return section;
+    }
+
+    private Section makeSection(int id, String title, String department, char letter, String professor1, String professor2) {
+
+        Course course = new Course(id, title, department, 3, "Fall");
+
+        Section section = new Section();
+        section.setCourse(course);
+        section.setSectionID(letter);
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add(professor1);
+        profs.add(professor2);
         section.setProfessors(profs);
 
         return section;
@@ -53,8 +68,10 @@ class ProfessorFilterTest {
         assertEquals(2, results.size());
 
         for (Section s : results) {
-            sectionProfs = s.getProfessors();
-            assertEquals("Hutchins", s.getProfessors());
+            ArrayList<String> sectionProfs = s.getProfessors();
+            for (String prof : sectionProfs){
+                assertEquals("Hutchins", prof);
+            }
         }
     }
 
@@ -75,14 +92,13 @@ class ProfessorFilterTest {
 
         List<Section> sections = new ArrayList<>();
 
-        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins"));
+        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins","Johnson"));
         sections.add(makeSection(210,"Data Structures","COMP",'B',"Hutchins"));
-        sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
+        sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre","Smith"));
 
 
-        ArrayList<String> profsToSearchFor = new ArrayList<>();
-        profsToSearchFor.add("Dickinson");
-        ProfessorFilter filter = new ProfessorFilter(profsToSearchFor);
+        String profToSearchFor = "Dickinson";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> results = filter.apply(sections);
 

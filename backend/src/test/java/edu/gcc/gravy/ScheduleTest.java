@@ -3,6 +3,7 @@ package edu.gcc.gravy;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,6 +14,9 @@ class ScheduleTest {
     private Course course(int id, int credits) {
         return new Course(id, "CS " + id, "CS", credits, "Fall");
     }
+
+    ArrayList<String> profs = new ArrayList<>();
+
 
     private TimeSlot slot(int sh, int sm, int eh, int em, Day... days) {
         return new TimeSlot(
@@ -35,15 +39,18 @@ class ScheduleTest {
         );
 
         // Use 'A' as sectionID, no professor needed for test
-        return new Section(course, 'A', "TestProf", 30, 0, timeSlot);
+        profs.add("Dr.Smith");
+        return new Section(course, 'A', profs, 30, 0, timeSlot);
     }
 
     private Section section(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 10, t);
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 10, t);
     }
 
-    private Section fullSection(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 30, t);
+    private Section fullSection(Course c, char id, TimeSlot t){
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 30, t);
     }
 
     private Activity activity(String name, TimeSlot t) {
