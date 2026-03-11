@@ -1,5 +1,6 @@
 package edu.gcc.gravy;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Section {
@@ -8,14 +9,14 @@ public class Section {
     private String professor;
     private int capacity;
     private int enrolled;
-    private TimeSlot time;
+    private ArrayList<TimeSlot> time;
     private boolean isOpen;
     private String location;
 
     public Section() {
     }
 
-    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time, boolean isOpen, String location) {
+    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, ArrayList<TimeSlot> time, boolean isOpen, String location) {
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;
@@ -37,11 +38,25 @@ public class Section {
     }
 
     public boolean hasTimeConflict(Section other) {
-        return time.overlaps(other.getTime());
+        for (TimeSlot slot : time) {
+            for (TimeSlot otherSlot : other.getTime()) {
+                if (slot.overlaps(otherSlot)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public boolean hasTimeConflict(Activity other) {
-        return time.overlaps(other.getTime());
+        for (TimeSlot slot : time) {
+            if (slot.overlaps(other.getTime())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void setCourse(Course course) {
@@ -78,7 +93,7 @@ public class Section {
         return enrolled;
     }
 
-    public TimeSlot getTime() {
+    public ArrayList<TimeSlot> getTime() {
         return time;
     }
 

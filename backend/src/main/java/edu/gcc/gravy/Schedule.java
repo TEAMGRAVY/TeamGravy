@@ -10,8 +10,8 @@ public class Schedule {
     private List<Activity> activities;
     private String term;
     private String errorMessage;
-    // [1/2 hour slot][weekday]
-    private boolean[][] calendar = new boolean[26][5]; // Used for quick checks of time conflicts & updating UI checkboxes
+    // [1/2 hour slot][weekday] - 8:00am - 9:30pm
+    private boolean[][] calendar = new boolean[27][5]; // Used for quick checks of time conflicts & updating UI checkboxes
 
     public Schedule(Student student, String name, String term) {
         this.student = student;
@@ -34,7 +34,7 @@ public class Schedule {
             return false;
         }
 
-        for (Section other : sections) { // Scan for either error
+        for (Section other : sections) { // Scan for time conflict error
             if (section.hasTimeConflict(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " conflicts with section " +  other.getCourseCode();
                 return false;
@@ -58,7 +58,9 @@ public class Schedule {
 
     public boolean removeSection(Section section) {
         if (sections.remove(section)) {
-            removeCalendar(section.getTime());
+            for (TimeSlot slot : section.getTime()) {
+                removeCalendar(slot);
+            }
             return true;
         }
         return false;
@@ -97,11 +99,41 @@ public class Schedule {
         return false;
     }
 
-    public boolean addCalendar(TimeSlot time) {
-        boolean[] rows = time.getSlotNumbers(); // 26
+    public boolean addCalendar(ArrayList<TimeSlot> time) { // Section - multiple TimeSlots
+        for (TimeSlot slot : time) {
+            boolean[] rows = slot.getSlotNumbers(); // 27
+            boolean[] cols = slot.getDayNumbers(); // 5
+
+            for (int r = 0; r < 27; r++) {
+                for (int c = 0; c < 5; c++) {
+                    if(rows[r] && cols[c] && calendar[r][c]) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (TimeSlot slot : time) { // Apply changes
+            boolean[] rows = slot.getSlotNumbers(); // 27
+            boolean[] cols = slot.getDayNumbers(); // 5
+
+            for (int r = 0; r < 27; r++) {
+                for (int c = 0; c < 5; c++) {
+                    if(rows[r] && cols[c]) {
+                        calendar[r][c] = true;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean addCalendar(TimeSlot time) { // Activity
+        boolean[] rows = time.getSlotNumbers(); // 27
         boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 26; r++) {
+        for (int r = 0; r < 27; r++) {
             for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     if (calendar[r][c]) return false;
@@ -113,10 +145,10 @@ public class Schedule {
     }
 
     public void removeCalendar(TimeSlot time) {
-        boolean[] rows = time.getSlotNumbers(); // 26
+        boolean[] rows = time.getSlotNumbers(); // 27
         boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 26; r++) {
+        for (int r = 0; r < 27; r++) {
             for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     calendar[r][c] = false;
@@ -140,7 +172,7 @@ public class Schedule {
 
         for (int c = 0; c < 5; c++) {
             noClass = true;
-            for (int r = 0; r < 26; r++) {
+            for (int r = 0; r < 27; r++) {
                 if (calendar[r][c]) {
                     noClass = false;
                     break;
@@ -158,10 +190,10 @@ public class Schedule {
         for (int c = 0; c < 5; c++) {
             int prevEnd = -1;
             int r = 0;
-            while (r < 26) {
+            while (r < 27) {
                 int start = r;
                 if (calendar[r][c]) { // Start of a class
-                    while (calendar[r][c] && r < 26) { // Find length of the class
+                    while (r < 27 && calendar[r][c]) { // Find length of the class
                         r++;
                     }
                     int end = r - 1; // End of the class
