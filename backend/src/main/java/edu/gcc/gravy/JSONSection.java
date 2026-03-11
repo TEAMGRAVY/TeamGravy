@@ -1,5 +1,6 @@
 package edu.gcc.gravy;
 
+import java.lang.reflect.Array;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,16 +47,26 @@ public class JSONSection {
 
     }
 
-    public Section toSection(){
+    public Section toSection(ArrayList<Course> allCourses){
         TimeSlot[] timeSlots = new TimeSlot[times.size()];
         for (int index = 0; index < times.size(); index++){
             timeSlots[index] = times.get(index).toTimeSlot();
         }
 
         Course course = new Course(number, name, subject, credits, semester);
-
+        for (Course current : allCourses){
+            if (course.getTitle().equals(current.getTitle())){
+                if (course.getCourseID() == current.getCourseID()
+                    && course.getDepartment().equals(current.getDepartment())
+                    && course.getTerm().equals(current.getTerm())
+                    && course.getCreditHours() == current.getCreditHours()
+                ){
+                    course = current;
+                }
+            }
+        }
         return new Section(course, section.charAt(0), faculty[0], total_seats, total_seats-open_seats,
-                timeSlots
+                (timeSlots.length > 0) ? timeSlots[0] : new TimeSlot(LocalTime.MIDNIGHT, LocalTime.MIDNIGHT, Set.of(Day.MONDAY))
         );
     }
 

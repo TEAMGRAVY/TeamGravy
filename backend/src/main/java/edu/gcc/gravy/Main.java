@@ -17,7 +17,7 @@ public class Main {
     public static ArrayList<Section> allSections;
 
     public static void main(String[] args) {
-
+        allSections = (new JSONReader()).readJSON();
     }
 
     public static void run() {
@@ -28,32 +28,5 @@ public class Main {
         // Display results
     }
 
-    public static void readJSON(){
-        String jsonPath = "./data_wolfe.json";
-        try (InputStream inputStream = Files.newInputStream(Path.of(jsonPath));
-             JsonReader reader = new JsonReader(new InputStreamReader(inputStream))
-             ) {
-            // Create Gson instance
-            Gson gson = new Gson();
-
-            ArrayList<Section> sections = new ArrayList<>();
-
-            reader.beginArray();
-            while (reader.hasNext()) {
-                sections.add(((JSONSection)gson.fromJson(reader, JSONSection.class)).toSection());
-            }
-            reader.endArray();
-
-            // Iterate and print the objects
-            for (Section section : sections) {
-                System.out.println(section);
-            }
-
-            allSections = sections;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
 
