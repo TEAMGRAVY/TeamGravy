@@ -47,12 +47,13 @@ public class JSONSection {
     }
 
     public Section toSection(ArrayList<Course> allCourses){
-        TimeSlot[] timeSlots = new TimeSlot[times.size()];
+        ArrayList<TimeSlot> timeSlots = new ArrayList<>();
         for (int index = 0; index < times.size(); index++){
-            timeSlots[index] = times.get(index).toTimeSlot();
+            timeSlots.add(times.get(index).toTimeSlot());
         }
 
         Course course = new Course(number, name, subject, credits, semester);
+        boolean courseExists = false;
         for (Course current : allCourses){
             if (course.getTitle().equals(current.getTitle())){
                 if (course.getCourseID() == current.getCourseID()
@@ -61,11 +62,14 @@ public class JSONSection {
                     && course.getCreditHours() == current.getCreditHours()
                 ){
                     course = current;
+                    courseExists = true;
                 }
             }
         }
-        return new Section(course, section.charAt(0), faculty[0], total_seats, total_seats-open_seats,
-                (timeSlots.length > 0) ? timeSlots[0] : new TimeSlot(LocalTime.MIDNIGHT, LocalTime.MIDNIGHT, Set.of(Day.MONDAY))
-        );
+        if (!courseExists){
+            allCourses.add(course);
+        }
+        return new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
+                timeSlots, is_open, location);
     }
 }
