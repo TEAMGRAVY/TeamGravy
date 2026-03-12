@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,19 +39,19 @@ class ScheduleTest {
                 Set.of(day)
         );
 
-        // Use 'A' as sectionID, no professor needed for test
+        // Use 'A' as sectionID
         profs.add("Dr.Smith");
-        return new Section(course, 'A', profs, 30, 0, timeSlot);
+        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(t)), true, "");
     }
 
     private Section section(Course c, char id, TimeSlot t) {
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 10, t);
+        return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "");
     }
 
     private Section fullSection(Course c, char id, TimeSlot t){
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 30, t);
+        return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "");
     }
 
     private Activity activity(String name, TimeSlot t) {
@@ -96,6 +97,31 @@ class ScheduleTest {
                 slot(10, 0, 11, 0, Day.MONDAY));
 
         assertFalse(schedule.addSection(full));
+    }
+
+    @Test
+    void addSection_lastSlotClass_succeeds() {
+        Schedule schedule = schedule();
+
+        Section late = section(course(450, 3), 'A',
+                slot(20, 30, 21, 30, Day.MONDAY)); // 8:30–9:30
+
+        assertTrue(schedule.addSection(late));
+    }
+
+    @Test
+    void addSection_conflictAtLastSlot_fails() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(101,3),'A',
+                slot(20,0,21,0,Day.MONDAY));
+
+        Section s2 = section(course(102,3),'A',
+                slot(20,30,21,30,Day.MONDAY));
+
+        schedule.addSection(s1);
+
+        assertFalse(schedule.addSection(s2));
     }
 
     @Test
@@ -207,24 +233,48 @@ class ScheduleTest {
     @Test
     void addSection_updatesCalendar_correctly() {
         Schedule schedule = new Schedule(null, "Test", "Fall");
-        Section s = createTestSection("CS101", 3, Day.MONDAY, 9, 0, 10, 0); // helper to create a Section with TimeSlot
+        Section s = createTestSection("CS101", 3, Day.MONDAY, 9, 0, 10, 0);
 
         boolean added = schedule.addSection(s);
         assertTrue(added);
 
-        boolean[][] calendar = schedule.getCalendar(); // you may need a getter for testing
-        TimeSlot t = s.getTime();
+        boolean[][] calendar = schedule.getCalendar();
 
-        boolean[] days = t.getDayNumbers();
-        boolean[] slots = t.getSlotNumbers();
+        for (TimeSlot t : s.getTime()) {
+            boolean[] days = t.getDayNumbers();
+            boolean[] slots = t.getSlotNumbers();
 
-        for (int slot = 0; slot < slots.length; slot++) {
-            for (int day = 0; day < days.length; day++) {
-                if (slots[slot] && days[day]) {
-                    assertTrue(calendar[slot][day], "Calendar slot should be true for section");
+            for (int slot = 0; slot < slots.length; slot++) {
+                for (int day = 0; day < days.length; day++) {
+                    if (slots[slot] && days[day]) {
+                        assertTrue(calendar[slot][day],
+                                "Calendar slot should be true for section");
+                    }
                 }
             }
         }
+    }
+
+    @Test
+    void addSection_lastSlot_updatesCalendar() {
+        Schedule schedule = schedule();
+
+        Section late = section(course(450, 3), 'A',
+                slot(20,30,21,30,Day.MONDAY));
+
+        schedule.addSection(late);
+
+        boolean[][] calendar = schedule.getCalendar();
+
+        boolean found = false;
+
+        for (int r = 0; r < calendar.length; r++) {
+            if (calendar[r][Day.MONDAY.ordinal()]) {
+                found = true;
+            }
+        }
+
+        assertTrue(found);
     }
 
     @Test
@@ -237,14 +287,19 @@ class ScheduleTest {
         // Add it to the schedule
         assertTrue(schedule.addSection(section));
 
-        // Verify that the calendar has slots set to true
         boolean[][] calendar = schedule.getCalendar();
-        boolean[] days = section.getTime().getDayNumbers();
-        boolean[] slots = section.getTime().getSlotNumbers();
-        for (int slot = 0; slot < slots.length; slot++) {
-            for (int day = 0; day < days.length; day++) {
-                if (slots[slot] && days[day]) {
-                    assertTrue(calendar[slot][day], "Calendar slot should be true before removal");
+
+        // Verify that the calendar has slots set to true
+        for (TimeSlot t : section.getTime()) {
+            boolean[] days = t.getDayNumbers();
+            boolean[] slots = t.getSlotNumbers();
+
+            for (int slot = 0; slot < slots.length; slot++) {
+                for (int day = 0; day < days.length; day++) {
+                    if (slots[slot] && days[day]) {
+                        assertTrue(calendar[slot][day],
+                                "Calendar slot should be true before removal");
+                    }
                 }
             }
         }
@@ -252,12 +307,19 @@ class ScheduleTest {
         // Remove the section
         assertTrue(schedule.removeSection(section));
 
-        // Verify that the same slots are now false
         calendar = schedule.getCalendar(); // refresh
-        for (int slot = 0; slot < slots.length; slot++) {
-            for (int day = 0; day < days.length; day++) {
-                if (slots[slot] && days[day]) {
-                    assertFalse(calendar[slot][day], "Calendar slot should be false after removal");
+
+        // Verify that the same slots are now false
+        for (TimeSlot t : section.getTime()) {
+            boolean[] days = t.getDayNumbers();
+            boolean[] slots = t.getSlotNumbers();
+
+            for (int slot = 0; slot < slots.length; slot++) {
+                for (int day = 0; day < days.length; day++) {
+                    if (slots[slot] && days[day]) {
+                        assertFalse(calendar[slot][day],
+                                "Calendar slot should be false after removal");
+                    }
                 }
             }
         }
@@ -361,6 +423,25 @@ class ScheduleTest {
         assertNull(schedule.getErrorMessage());
     }
 
+    @Test
+    void addSection_closedSection_fails() {
+        Schedule schedule = schedule();
+
+        Section closed = new Section(
+                course(112, 3),
+                'A',
+                "Dr. Smith",
+                30,
+                10,
+                new ArrayList<>(List.of(slot(9,0,10,0,Day.MONDAY))),
+                false,  // closed
+                ""
+        );
+
+        assertFalse(schedule.addSection(closed));
+
+        assertTrue(schedule.getErrorMessage().contains("not open"));
+    }
 
     // ---------- DAYS WITHOUT CLASS TESTS ----------
 
@@ -598,4 +679,136 @@ class ScheduleTest {
         assertEquals(270, schedule.getLongestBreak());
     }
 
+    @Test
+    void getLongestBreak_withLateNightClass() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(9,0,10,0,Day.MONDAY)));
+
+        schedule.addSection(section(course(102,3),'A',
+                slot(20,30,21,30,Day.MONDAY))); // 8:30–9:30
+
+        // break from 10 → 8:30
+        assertEquals(630, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_adjacentLateClasses() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(19,30,20,30,Day.MONDAY)));
+
+        schedule.addSection(section(course(102,3),'A',
+                slot(20,30,21,30,Day.MONDAY)));
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    // ---------- MULTIPLE TIMESLOTS ----------
+
+    @Test
+    void addSection_multipleTimeSlots_updatesCalendarCorrectly() {
+        Schedule schedule = new Schedule(null, "Test", "Fall");
+
+        // Create two timeslots: MWF 9-10 and R 1-2
+        TimeSlot lecture = new TimeSlot(
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0),
+                Set.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+        );
+
+        TimeSlot lab = new TimeSlot(
+                LocalTime.of(13, 0),
+                LocalTime.of(14, 0),
+                Set.of(Day.THURSDAY)
+        );
+
+        ArrayList<TimeSlot> times = new ArrayList<>();
+        times.add(lecture);
+        times.add(lab);
+
+        Section section = new Section(
+                new Course(101, "Test Course", "CS", 3, "Fall"),
+                'A',
+                "Dr. Test",
+                30,
+                10,
+                times,
+                true,
+                "STEM 101"
+        );
+
+        assertTrue(schedule.addSection(section));
+
+        boolean[][] calendar = schedule.getCalendar();
+
+        // Verify BOTH slots were added
+        for (TimeSlot t : section.getTime()) {
+            boolean[] days = t.getDayNumbers();
+            boolean[] slots = t.getSlotNumbers();
+
+            for (int r = 0; r < slots.length; r++) {
+                for (int c = 0; c < days.length; c++) {
+                    if (slots[r] && days[c]) {
+                        assertTrue(calendar[r][c],
+                                "Calendar slot should be true for multi-slot section");
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void removeSection_multipleTimeSlots_clearsCalendar() {
+        Schedule schedule = new Schedule(null, "Test", "Fall");
+
+        TimeSlot lecture = new TimeSlot(
+                LocalTime.of(9, 0),
+                LocalTime.of(10, 0),
+                Set.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+        );
+
+        TimeSlot lab = new TimeSlot(
+                LocalTime.of(13, 0),
+                LocalTime.of(14, 0),
+                Set.of(Day.THURSDAY)
+        );
+
+        ArrayList<TimeSlot> times = new ArrayList<>();
+        times.add(lecture);
+        times.add(lab);
+
+        Section section = new Section(
+                new Course(101, "Test Course", "CS", 3, "Fall"),
+                'A',
+                "Dr. Test",
+                30,
+                10,
+                times,
+                true,
+                "STEM 101"
+        );
+
+        assertTrue(schedule.addSection(section));
+        assertTrue(schedule.removeSection(section));
+
+        boolean[][] calendar = schedule.getCalendar();
+
+        // Verify all slots were cleared
+        for (TimeSlot t : section.getTime()) {
+            boolean[] days = t.getDayNumbers();
+            boolean[] slots = t.getSlotNumbers();
+
+            for (int r = 0; r < slots.length; r++) {
+                for (int c = 0; c < days.length; c++) {
+                    if (slots[r] && days[c]) {
+                        assertFalse(calendar[r][c],
+                                "Calendar slot should be false after removal");
+                    }
+                }
+            }
+        }
+    }
 }

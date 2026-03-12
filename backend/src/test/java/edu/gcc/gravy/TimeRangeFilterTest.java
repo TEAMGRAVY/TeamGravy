@@ -42,16 +42,16 @@ class TimeRangeFilterTest {
         );
     }
 
-    private Section section(Course course, char id, TimeSlot slot) {
+    private Section section(Course course, char id, ArrayList<TimeSlot> slots) {
         ArrayList<String> profs = new ArrayList<>();
-        profs.add("Dr. Miller");
+        profs.add("Dr. Miller");      
         return new Section(
                 course,
                 id,
                 profs,
                 30,
                 18,
-                slot,
+                slots,
                 false,
                 ""
         );
@@ -64,13 +64,13 @@ class TimeRangeFilterTest {
         Section earlyCS112 = section(
                 cs112(),
                 'A',
-                slot(8, 0, 9, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+                new ArrayList<>(List.of(slot(8, 0, 9, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
         );
 
         Section midMorningCS220 = section(
                 cs220(),
                 'A',
-                slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
         );
 
         TimeRangeFilter filter =
@@ -88,13 +88,13 @@ class TimeRangeFilterTest {
         Section morning = section(
                 cs112(),
                 'A',
-                slot(9, 0, 10, 15, Day.TUESDAY, Day.THURSDAY)
+                new ArrayList<>(List.of(slot(9, 0, 10, 15, Day.TUESDAY, Day.THURSDAY)))
         );
 
         Section afternoon = section(
                 cs220(),
                 'B',
-                slot(14, 0, 15, 15, Day.TUESDAY, Day.THURSDAY)
+                new ArrayList<>(List.of(slot(14, 0, 15, 15, Day.TUESDAY, Day.THURSDAY)))
         );
 
         TimeRangeFilter filter =
@@ -112,13 +112,13 @@ class TimeRangeFilterTest {
         Section mwf = section(
                 cs112(),
                 'A',
-                slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
         );
 
         Section tth = section(
                 cs220(),
                 'A',
-                slot(10, 0, 11, 15, Day.TUESDAY, Day.THURSDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 15, Day.TUESDAY, Day.THURSDAY)))
         );
 
         TimeRangeFilter filter =
@@ -136,19 +136,19 @@ class TimeRangeFilterTest {
         Section good = section(
                 cs112(),
                 'A',
-                slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 15, Day.MONDAY, Day.WEDNESDAY)))
         );
 
         Section wrongTime = section(
                 cs220(),
                 'A',
-                slot(8, 0, 9, 15, Day.MONDAY, Day.WEDNESDAY)
+                new ArrayList<>(List.of(slot(8, 0, 9, 15, Day.MONDAY, Day.WEDNESDAY)))
         );
 
         Section wrongDay = section(
                 cs220(),
                 'B',
-                slot(10, 0, 11, 15, Day.TUESDAY, Day.THURSDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 15, Day.TUESDAY, Day.THURSDAY)))
         );
 
         TimeRangeFilter filter =
@@ -168,10 +168,10 @@ class TimeRangeFilterTest {
     @Test
     void noFilters_returnsAllSections() {
         Section a = section(cs112(), 'A',
-                slot(9, 0, 10, 15, Day.MONDAY));
+                new ArrayList<>(List.of(slot(9, 0, 10, 15, Day.MONDAY))));
 
         Section b = section(cs220(), 'A',
-                slot(11, 0, 12, 15, Day.TUESDAY));
+                new ArrayList<>(List.of(slot(11, 0, 12, 15, Day.TUESDAY))));
 
         TimeRangeFilter filter =
                 new TimeRangeFilter(null, null, null);
@@ -186,7 +186,7 @@ class TimeRangeFilterTest {
         Section exact = section(
                 cs112(),
                 'A',
-                slot(10, 0, 11, 0, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 0, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
         );
 
         TimeRangeFilter filter =
@@ -203,7 +203,7 @@ class TimeRangeFilterTest {
         Section before = section(
                 cs112(),
                 'A',
-                slot(9, 59, 11, 0, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
+                new ArrayList<>(List.of(slot(9, 59, 11, 0, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
         );
 
         TimeRangeFilter filter =
@@ -220,7 +220,7 @@ class TimeRangeFilterTest {
         Section mondayOnly = section(
                 cs112(),
                 'A',
-                slot(10, 0, 11, 0, Day.MONDAY)
+                new ArrayList<>(List.of(slot(10, 0, 11, 0, Day.MONDAY)))
         );
 
         TimeRangeFilter filter =
