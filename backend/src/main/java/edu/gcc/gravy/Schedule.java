@@ -22,37 +22,37 @@ public class Schedule {
     }
 
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
-        boolean timeConflict = false;
-        boolean sectionFull = section.isFull();
+        errorMessage = null;
 
-        if (sectionFull) {
-            getErrorMessage(timeConflict, sectionFull);
+        if (!section.isOpen()) {
+            errorMessage = "Section " + section.getCourseCode() + " is not open.";
+            return false;
+        }
+
+        if (section.isFull()) {
+            errorMessage = "Section " + section.getCourseCode() + " is full.";
             return false;
         }
 
         for (Section other : sections) { // Scan for either error
-            if (!timeConflict) {
-                timeConflict = section.hasTimeConflict(other);
+            if (section.hasTimeConflict(other)) {
+                errorMessage = "Section " + section.getCourseCode() + " conflicts with section " +  other.getCourseCode();
+                return false;
             }
         }
 
-        if (!timeConflict) {
-            for (Activity other: activities) { // Scan for conflict with activity
-                if (!timeConflict) {
-                    timeConflict = section.hasTimeConflict(other);
-                }
+        for (Activity other: activities) { // Scan for conflict with activity
+            if (section.hasTimeConflict(other)) {
+                errorMessage = "Section " + section.getCourseCode() + " conflicts with activity " + other.getName();
+                return false;
             }
-        }
-
-        if (timeConflict) { // Error occured
-            getErrorMessage(timeConflict, sectionFull); // Change later based on GUI
-            return false;
         }
 
         if(addCalendar(section.getTime())) {
-            sections.add(section); // should this increase the section's enrolled? - Probably this is separate from myGCC so no
+            sections.add(section);
             return true;
         }
+        errorMessage = "Internal calendar conflict.";
         return false;
     }
 
@@ -65,28 +65,27 @@ public class Schedule {
     }
 
     public boolean addActivity(Activity activity) {
-        boolean timeConflict = false;
+        errorMessage = null;
+
         for (Section other : sections) { // Scan for either error
-            if (!timeConflict) {
-                timeConflict = other.hasTimeConflict(activity);
+            if (other.hasTimeConflict(activity)) {
+                errorMessage = "Activity " + activity.getName() + " conflicts with section " + other.getCourseCode();
+                return false;
             }
         }
 
         for (Activity other: activities) { // Scan for conflict with activity
-            if (!timeConflict) {
-                timeConflict = activity.hasTimeConflict(other);
+            if (activity.hasTimeConflict(other)) {
+                errorMessage = "Activity " + activity.getName() + " conflicts with activity " + other.getName();
+                return false;
             }
-        }
-
-        if (timeConflict) { // Error occured
-            getErrorMessage(timeConflict, false); // Change later based on GUI
-            return false;
         }
 
         if (addCalendar(activity.getTime())) {
             activities.add(activity);
             return true;
         }
+        errorMessage = "Internal calendar conflict.";
         return false;
     }
 
@@ -198,7 +197,7 @@ public class Schedule {
         return term;
     }
 
-    public String getErrorMessage(boolean timeConflict, boolean sectionFull) {
+    public String getErrorMessage() {
         return errorMessage;
     }
 

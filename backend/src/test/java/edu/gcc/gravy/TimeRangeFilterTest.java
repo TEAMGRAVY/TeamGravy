@@ -51,7 +51,9 @@ class TimeRangeFilterTest {
                 profs,
                 30,
                 18,
-                slot
+                slot,
+                false,
+                ""
         );
     }
 
