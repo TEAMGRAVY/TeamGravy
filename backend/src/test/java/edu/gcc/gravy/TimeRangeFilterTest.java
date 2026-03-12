@@ -3,6 +3,7 @@ package edu.gcc.gravy;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -42,10 +43,12 @@ class TimeRangeFilterTest {
     }
 
     private Section section(Course course, char id, TimeSlot slot) {
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add("Dr. Miller");
         return new Section(
                 course,
                 id,
-                "Dr. Miller",
+                profs,
                 30,
                 18,
                 slot,

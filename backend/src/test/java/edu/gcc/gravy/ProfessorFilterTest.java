@@ -3,6 +3,7 @@ package edu.gcc.gravy;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +17,25 @@ class ProfessorFilterTest {
         Section section = new Section();
         section.setCourse(course);
         section.setSectionID(letter);
-        section.setProfessor(professor);
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add(professor);
+        section.setProfessors(profs);
+
+        return section;
+    }
+
+    // Helper method to construct sections for testing.
+    private Section makeSection(int id, String title, String department, char letter, String professor1, String professor2) {
+
+        Course course = new Course(id, title, department, 3, "Fall");
+
+        Section section = new Section();
+        section.setCourse(course);
+        section.setSectionID(letter);
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add(professor1);
+        profs.add(professor2);
+        section.setProfessors(profs);
 
         return section;
     }
@@ -24,7 +43,8 @@ class ProfessorFilterTest {
     @Test
     void getType() {
 
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         // The filter type should always be PROFESSOR
         assertEquals(FilterType.PROFESSOR, filter.getType());
@@ -35,25 +55,38 @@ class ProfessorFilterTest {
 
         List<Section> sections = new ArrayList<>();
 
-        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins"));
-        sections.add(makeSection(210,"Data Structures","COMP",'B',"Hutchins"));
+        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins","Johnson"));
+        sections.add(makeSection(210,"Data Structures","COMP",'B',"Dickinson","Hutchins"));
         sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
 
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> results = filter.apply(sections);
 
-        // Only the COMP sections should remain after filtering
+        // Only the courses with Hutchins as a professor should remain after filtering
         assertEquals(2, results.size());
 
+        boolean correctProf = false;
+
         for (Section s : results) {
-            assertEquals("Hutchins", s.getProfessor());
+            ArrayList<String> sectionProfs = s.getProfessors();
+            for (String prof : sectionProfs){
+                if (Objects.equals(prof, "Hutchins")) {
+                    correctProf = true;
+                    break;
+                }
+            }
+            assertTrue(correctProf);
+            correctProf = false;
         }
     }
 
     @Test
     void applyWithEmptyList() {
-        ProfessorFilter filter = new ProfessorFilter("Hutchins");
+        String profToSearchFor = "Hutchins";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> sections = new ArrayList<>();
 
@@ -67,12 +100,13 @@ class ProfessorFilterTest {
 
         List<Section> sections = new ArrayList<>();
 
-        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins"));
+        sections.add(makeSection(141,"Programming I","COMP",'A',"Hutchins","Johnson"));
         sections.add(makeSection(210,"Data Structures","COMP",'B',"Hutchins"));
-        sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre"));
+        sections.add(makeSection(101,"Calculus I","MATH",'A',"McIntyre","Smith"));
 
 
-        ProfessorFilter filter = new ProfessorFilter("Dickinson");
+        String profToSearchFor = "Dickinson";
+        ProfessorFilter filter = new ProfessorFilter(profToSearchFor);
 
         List<Section> results = filter.apply(sections);
 
