@@ -1,17 +1,22 @@
 package edu.gcc.gravy;
 
 import java.util.ArrayList;
-
-/**
- * @author: goettelsg24
- */
+import io.javalin.Javalin;
 
 public class Main {
-
     public static ArrayList<Section> allSections;
-
     public static void main(String[] args) {
         allSections = (new JSONReader()).readJSON();
+        Javalin app = Javalin.create(config -> {
+            config.staticFiles.add("public");
+
+            config.bundledPlugins.enableCors(cors -> {
+                cors.addRule(it -> {
+                    it.anyHost();
+                });
+            });
+        }).start(7000);
+        CourseController.registerRoutes(app);
     }
 
     public static void run() {
@@ -21,6 +26,4 @@ public class Main {
         // Apply filters
         // Display results
     }
-
 }
-
