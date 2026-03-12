@@ -18,6 +18,7 @@ class ScheduleTest {
 
     ArrayList<String> profs = new ArrayList<>();
 
+
     private TimeSlot slot(int sh, int sm, int eh, int em, Day... days) {
         return new TimeSlot(
                 LocalTime.of(sh, sm),
@@ -38,7 +39,7 @@ class ScheduleTest {
                 Set.of(day)
         );
 
-        // Use 'A' as sectionID, no professor needed for test
+        // Use 'A' as sectionID
         profs.add("Dr.Smith");
         return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(timeSlot)), true, "");
     }
