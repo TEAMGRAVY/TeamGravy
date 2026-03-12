@@ -3,8 +3,8 @@ package edu.gcc.gravy;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,7 +41,7 @@ class ScheduleTest {
 
         // Use 'A' as sectionID
         profs.add("Dr.Smith");
-        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(t)), true, "");
+        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(timeSlot)), true, "");
     }
 
     private Section section(Course c, char id, TimeSlot t) {
@@ -49,7 +49,7 @@ class ScheduleTest {
         return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "");
     }
 
-    private Section fullSection(Course c, char id, TimeSlot t){
+    private Section fullSection(Course c, char id, TimeSlot t) {
         profs.add("Dr. Smith");
         return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "");
     }
@@ -427,10 +427,11 @@ class ScheduleTest {
     void addSection_closedSection_fails() {
         Schedule schedule = schedule();
 
+        profs.add("Dr.Smith");
         Section closed = new Section(
                 course(112, 3),
                 'A',
-                "Dr. Smith",
+                profs,
                 30,
                 10,
                 new ArrayList<>(List.of(slot(9,0,10,0,Day.MONDAY))),
@@ -729,10 +730,11 @@ class ScheduleTest {
         times.add(lecture);
         times.add(lab);
 
+        profs.add("Dr.Smith");
         Section section = new Section(
                 new Course(101, "Test Course", "CS", 3, "Fall"),
                 'A',
-                "Dr. Test",
+                profs,
                 30,
                 10,
                 times,
@@ -780,10 +782,11 @@ class ScheduleTest {
         times.add(lecture);
         times.add(lab);
 
+        profs.add("Dr.Smith");
         Section section = new Section(
                 new Course(101, "Test Course", "CS", 3, "Fall"),
                 'A',
-                "Dr. Test",
+                profs,
                 30,
                 10,
                 times,
