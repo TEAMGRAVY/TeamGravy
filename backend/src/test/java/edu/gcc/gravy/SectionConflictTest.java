@@ -24,8 +24,10 @@ class SectionConflictTest {
                 Set.of(days));
     }
 
+    ArrayList<String> profs = new ArrayList<>();
     private Section section(Course c, char id, ArrayList<TimeSlot> timeSlots) {
-        return new Section(c, id, "Dr. Smith", 30, 10, timeSlots, false, "");
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 10, timeSlots, false, "");
     }
 
     private Activity activity(String name, TimeSlot t) {
