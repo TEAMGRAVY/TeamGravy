@@ -1,5 +1,4 @@
-{
-  "classes": [
+[
     {
       "credits": 0,
       "faculty": [
@@ -81549,7 +81548,4 @@
       "times": [],
       "total_seats": 0
     }
-  ],
-  "date": "2024-04-10",
-  "time": "02:15:01"
-}
+]
