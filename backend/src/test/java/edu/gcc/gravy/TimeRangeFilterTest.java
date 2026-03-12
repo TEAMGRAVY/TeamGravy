@@ -43,10 +43,12 @@ class TimeRangeFilterTest {
     }
 
     private Section section(Course course, char id, ArrayList<TimeSlot> slots) {
+        ArrayList<String> profs = new ArrayList<>();
+        profs.add("Dr. Miller");
         return new Section(
                 course,
                 id,
-                "Dr. Miller",
+                profs,
                 30,
                 18,
                 slots,
