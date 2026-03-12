@@ -1,6 +1,5 @@
 package edu.gcc.gravy;
 
-import java.lang.reflect.Array;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,5 +68,4 @@ public class JSONSection {
                 (timeSlots.length > 0) ? timeSlots[0] : new TimeSlot(LocalTime.MIDNIGHT, LocalTime.MIDNIGHT, Set.of(Day.MONDAY))
         );
     }
-
 }
