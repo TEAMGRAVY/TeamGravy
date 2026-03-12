@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TeamGravy</title>
+</head>
+<body>
+
+<h1>TeamGravy</h1>
+
+<input id="search" placeholder="Search courses...">
+<button onclick="applySearch()">Search</button>
+<button onclick="loadCourses()">Reset</button>
+
+<p id="count"></p>
+<ul id="courseList"></ul>
+
+<script>
+    let allCourses = [];
+
+    async function loadCourses() {
+      const res = await fetch("/courses");
+      const json = await res.json();
+      const raw = Array.isArray(json) ? json : (json.classes || []);
+      allCourses = raw;
+      document.getElementById("search").value = "";
+      renderCourses(allCourses);
+    }
+
+    function applySearch() {
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      const results = allCourses.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.subject.toLowerCase().includes(q)
+      );
+      renderCourses(results);
+    }
+
+    function renderCourses(courses) {
+      document.getElementById("count").textContent = `${courses.length} results`;
+      const list = document.getElementById("courseList");
+      list.innerHTML = "";
+      for (const c of courses) {
+        const li = document.createElement("li");
+        li.textContent = `${c.subject} ${c.number} ${c.section} — ${c.name} (${c.credits} cr) — ${c.faculty[0] ?? "TBA"}`;
+        list.appendChild(li);
+      }
+    }
+
+    loadCourses();
+</script>
+
+</body>
+</html>
