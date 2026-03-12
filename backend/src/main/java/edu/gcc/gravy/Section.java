@@ -1,28 +1,33 @@
 package edu.gcc.gravy;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Section {
     private Course course;
     private char sectionID;
-    private String professor;
+    private ArrayList<String> professor;
     private int capacity;
     private int enrolled;
-    private TimeSlot time;
+    private ArrayList<TimeSlot> time;
+    private boolean isOpen;
+    private String location;
 
     public Section() {
     }
 
-    public Section(Course course, char sectionID, String professor, int capacity, int enrolled, TimeSlot time) {
+    public Section(Course course, char sectionID, ArrayList<String> professor, int capacity, int enrolled, ArrayList<TimeSlot> time, boolean isOpen, String location) {
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;
         this.capacity = capacity;
         this.enrolled = enrolled;
         this.time = time;
+        this.isOpen = isOpen;
+        this.location = location;
     }
 
-    public Section(Course course, char sectionID, String professor) {
+    public Section(Course course, char sectionID, ArrayList<String> professor) {
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;
@@ -33,11 +38,25 @@ public class Section {
     }
 
     public boolean hasTimeConflict(Section other) {
-        return time.overlaps(other.getTime());
+        for (TimeSlot slot : time) {
+            for (TimeSlot otherSlot : other.getTime()) {
+                if (slot.overlaps(otherSlot)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public boolean hasTimeConflict(Activity other) {
-        return time.overlaps(other.getTime());
+        for (TimeSlot slot : time) {
+            if (slot.overlaps(other.getTime())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void setCourse(Course course) {
@@ -60,11 +79,11 @@ public class Section {
         return sectionID;
     }
 
-    public String getProfessor() {
+    public ArrayList<String> getProfessors() {
         return professor;
     }
 
-    public void setProfessor(String professor) { this.professor = professor;}
+    public void setProfessors(ArrayList<String> professor) { this.professor = professor;}
 
     public int getCapacity() {
         return capacity;
@@ -74,9 +93,13 @@ public class Section {
         return enrolled;
     }
 
-    public TimeSlot getTime() {
+    public ArrayList<TimeSlot> getTime() {
         return time;
     }
+
+    public boolean isOpen() { return  isOpen; }
+
+    public  String getLocation() { return location; }
 
     @Override
     public boolean equals(Object o) { // Override for quicker removeSection() in Schedule

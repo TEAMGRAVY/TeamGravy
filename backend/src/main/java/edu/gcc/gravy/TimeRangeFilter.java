@@ -20,20 +20,38 @@ public class TimeRangeFilter extends Filter {
     @Override
     public List<Section> apply(List<Section> sections) {
         List<Section> result = new ArrayList<>();
+
         for (Section section : sections) {
-            // Check days if set - otherwise skip
-            if (days != null && !section.getTime().sharesDay(days)) continue;
+            boolean matchesTime = true;
+            boolean matchesDay = (days == null);
 
-            LocalTime startTime = section.getTime().getStartTime();
+            for (TimeSlot slot : section.getTime()) {
+                // Check if any days match
+                if (days != null && slot.sharesDay(days)) {
+                    matchesDay = true;
+                }
 
-            // Check earliestTime if set
-            if (earliestTime != null && startTime.isBefore(earliestTime)) continue;
-            // Check latestTime if set
-            if (latestTime != null && startTime.isAfter(latestTime)) continue;
+                LocalTime startTime = slot.getStartTime();
 
-            result.add(section); // If the section passed all filters
+                // Check earliestTime if set
+                if (earliestTime != null && startTime.isBefore(earliestTime)) {
+                    matchesTime = false;
+                    break;
+                }
 
+                // Check latestTime if set
+                if (latestTime != null && startTime.isAfter(latestTime)) {
+                    matchesTime = false;
+                    break;
+                }
+            }
+
+            // If the section passed all filters
+            if (matchesTime && matchesDay) {
+                result.add(section);
+            }
         }
+
         return result;
     }
 }
