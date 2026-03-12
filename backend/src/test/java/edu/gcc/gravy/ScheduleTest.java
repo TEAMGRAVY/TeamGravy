@@ -16,6 +16,9 @@ class ScheduleTest {
         return new Course(id, "CS " + id, "CS", credits, "Fall");
     }
 
+    ArrayList<String> profs = new ArrayList<>();
+
+
     private TimeSlot slot(int sh, int sm, int eh, int em, Day... days) {
         return new TimeSlot(
                 LocalTime.of(sh, sm),
@@ -36,16 +39,19 @@ class ScheduleTest {
                 Set.of(day)
         );
 
-        // Use 'A' as sectionID, no professor needed for test
-        return new Section(course, 'A', "TestProf", 30, 0, new ArrayList<>(List.of(timeSlot)), true, "");
+        // Use 'A' as sectionID
+        profs.add("Dr.Smith");
+        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(t)), true, "");
     }
 
     private Section section(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 10, new ArrayList<>(List.of(t)), true, "");
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "");
     }
 
-    private Section fullSection(Course c, char id, TimeSlot t) {
-        return new Section(c, id, "Dr. Smith", 30, 30, new ArrayList<>(List.of(t)), true, "");
+    private Section fullSection(Course c, char id, TimeSlot t){
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "");
     }
 
     private Activity activity(String name, TimeSlot t) {
