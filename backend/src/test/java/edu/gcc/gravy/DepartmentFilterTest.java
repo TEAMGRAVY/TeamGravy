@@ -49,6 +49,7 @@ class DepartmentFilterTest {
             assertEquals("COMP", s.getCourse().getDepartment());
         }
     }
+
     @Test
     void applyWithEmptyList() {
         DepartmentFilter filter = new DepartmentFilter("COMP");
