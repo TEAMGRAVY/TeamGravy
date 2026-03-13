@@ -26,7 +26,7 @@ class CreditHourFilterTest {
 
         CreditHourFilter filter = new CreditHourFilter(3);
 
-        // The filter type should always be DEPARTMENT
+        // The filter type should always be CREDITHOUR
         assertEquals(FilterType.CREDITHOUR, filter.getType());
     }
 
@@ -35,6 +35,7 @@ class CreditHourFilterTest {
 
         List<Section> sections = new ArrayList<>();
 
+        // Create many sections with varying credit hours.
         sections.add(makeSection(141,"Programming I","COMP",'A',3));
         sections.add(makeSection(210,"Data Structures","COMP",'B',3));
         sections.add(makeSection(101,"Calculus I","MATH",'A',4));
@@ -43,9 +44,10 @@ class CreditHourFilterTest {
 
         CreditHourFilter filter = new CreditHourFilter(3);
 
+        // Apply the filter
         List<Section> results = filter.apply(sections);
 
-        // Only the COMP sections should remain after filtering
+        // Only the courses with 3 credit hours should remain after filtering
         assertEquals(3, results.size());
 
         for (Section s : results) {
@@ -69,6 +71,7 @@ class CreditHourFilterTest {
 
         List<Section> sections = new ArrayList<>();
 
+        // Make some sections in which none of them have the correct amount of credit hours.
         sections.add(makeSection(101,"Calculus I","MATH",'A',4));
         sections.add(makeSection(102,"Calculus II","MATH",'B',4));
         sections.add(makeSection(101,"Independent Research","MATH",'A',2));
