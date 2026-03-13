@@ -62,6 +62,37 @@ public class MultipleFiltersTest {
     @Test
     void apply1FilterRemove1Filter() {
 
+        Search search = new Search("","");
+
+        List<Section> sections = new ArrayList<>();
+
+        // Create many sections with varying information to be filtered through
+        sections.add(makeSection(141,"Programming I","COMP",'A',3,"Hutchins",null));
+        sections.add(makeSection(210,"Data Structures","COMP",'B',3,"Hutchins",null));
+        sections.add(makeSection(101,"Calculus I","MATH",'A',4,"Flanders","Smith"));
+        sections.add(makeSection(102,"Calculus II","MATH",'B',4,"Smith",null));
+        sections.add(makeSection(101,"Advanced Programming","MATH",'B',3,"Dickinson",null));
+        sections.add(makeSection(101,"Physics I","PHYS",'A',4,"Wagner","Fugate"));
+
+        // Create the filters to be applied
+        CreditHourFilter creditHourFilter = new CreditHourFilter(4);
+
+
+        // Apply the filters
+        List<Section> results = sections;
+        results = creditHourFilter.apply(results);
+
+        // Only 3 sections in this group should be left
+        assertEquals(3, results.size());
+
+        // Ensure that all the sections that made it through filtering actually should be there
+        for (Section s : results) {
+            assertEquals(4, s.getCourse().getCreditHours());
+        }
+
+        results.rem
+
+
     }
 
     @Test
