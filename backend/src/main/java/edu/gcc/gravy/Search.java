@@ -17,10 +17,7 @@ public class Search {
         this.keywordQuery = keywordQuery;
 
         this.activeFilters = new ArrayList<>();
-
-        // potentially implement going to library and finding "allSections" here
-
-        this.allSections = new ArrayList<>();
+        this.allSections = new JSONReader().readJSON();
         this.currentResults = runBaseSearch();
 
     }
