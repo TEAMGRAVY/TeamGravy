@@ -1,5 +1,6 @@
 package edu.gcc.gravy;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Filter {
@@ -9,7 +10,7 @@ public abstract class Filter {
         this.type = type;
     }
 
-    public abstract List<Section> apply(List<Section> sections);
+    public abstract ArrayList<Section> apply(List<Section> sections);
 
     public FilterType getType() {
         return type;

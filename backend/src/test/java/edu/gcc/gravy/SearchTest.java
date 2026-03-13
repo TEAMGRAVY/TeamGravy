@@ -24,7 +24,7 @@ class SearchTest {
     @Test
     void addFilter() {
 
-        List<Section> sections = new ArrayList<>();
+        ArrayList<Section> sections = new ArrayList<>();
         sections.add(makeSection(141,"Programming I",'A'));
         sections.add(makeSection(230,"Advanced Programming",'A'));
 
@@ -34,9 +34,9 @@ class SearchTest {
         // Filter keeps only course 230
         Filter filter = new Filter(FilterType.DEPARTMENT) {
             @Override
-            public List<Section> apply(List<Section> input) {
+            public ArrayList<Section> apply(List<Section> input) {
 
-                List<Section> result = new ArrayList<>();
+                ArrayList<Section> result = new ArrayList<>();
 
                 for (Section s : input) {
                     if (s.getCourse().getCourseID() == 230) {
@@ -51,13 +51,13 @@ class SearchTest {
         List<Section> results = search.addFilter(filter);
 
         assertEquals(1, results.size());
-        assertEquals(230, results.get(0).getCourse().getCourseID());
+        assertEquals(230, results.getFirst().getCourse().getCourseID());
     }
 
     @Test
     void removeFilter() {
 
-        List<Section> sections = new ArrayList<>();
+        ArrayList<Section> sections = new ArrayList<>();
         sections.add(makeSection(141,"Programming I",'A'));
         sections.add(makeSection(230,"Advanced Programming",'A'));
 
@@ -66,9 +66,9 @@ class SearchTest {
 
         Filter filter = new Filter(FilterType.DEPARTMENT) {
             @Override
-            public List<Section> apply(List<Section> input) {
+            public ArrayList<Section> apply(List<Section> input) {
 
-                List<Section> result = new ArrayList<>();
+                ArrayList<Section> result = new ArrayList<>();
 
                 for (Section s : input) {
                     if (s.getCourse().getCourseID() == 230) {
@@ -92,7 +92,7 @@ class SearchTest {
     @Test
     void getResults() {
 
-        List<Section> sections = new ArrayList<>();
+        ArrayList<Section> sections = new ArrayList<>();
         sections.add(makeSection(141,"Programming I",'A'));
         sections.add(makeSection(230,"Advanced Programming",'A'));
 
@@ -107,7 +107,7 @@ class SearchTest {
     @Test
     void reset() {
 
-        List<Section> sections = new ArrayList<>();
+        ArrayList<Section> sections = new ArrayList<>();
         sections.add(makeSection(141,"Programming I",'A'));
         sections.add(makeSection(230,"Advanced Programming",'A'));
 
@@ -116,9 +116,9 @@ class SearchTest {
 
         Filter filter = new Filter(FilterType.DEPARTMENT) {
             @Override
-            public List<Section> apply(List<Section> input) {
+            public ArrayList<Section> apply(List<Section> input) {
 
-                List<Section> result = new ArrayList<>();
+                ArrayList<Section> result = new ArrayList<>();
                 result.add(input.get(0));
                 return result;
             }
@@ -137,7 +137,7 @@ class SearchTest {
     @Test
     void setAllSections() {
 
-        List<Section> firstList = new ArrayList<>();
+        ArrayList<Section> firstList = new ArrayList<>();
         firstList.add(makeSection(141,"Programming I",'A'));
 
         Search search = new Search("COMP","");
@@ -145,7 +145,7 @@ class SearchTest {
 
         assertEquals(1, search.getResults().size());
 
-        List<Section> newList = new ArrayList<>();
+        ArrayList<Section> newList = new ArrayList<>();
         newList.add(makeSection(230,"Advanced Programming",'A'));
         newList.add(makeSection(350,"Operating Systems",'A'));
 
@@ -163,7 +163,7 @@ class SearchTest {
         s.setCourse(c);
         s.setSectionID('A');
 
-        List<Section> list = new ArrayList<>();
+        ArrayList<Section> list = new ArrayList<>();
         list.add(s);
 
         Search search = new Search("COMP","");
@@ -172,6 +172,7 @@ class SearchTest {
         System.out.println(search.getResults().size());
 
         assertEquals(1, search.getResults().size());
+
     }
 
 }

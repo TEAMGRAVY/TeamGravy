@@ -18,8 +18,8 @@ public class TimeRangeFilter extends Filter {
     }
 
     @Override
-    public List<Section> apply(List<Section> sections) {
-        List<Section> result = new ArrayList<>();
+    public ArrayList<Section> apply(List<Section> sections) {
+        ArrayList<Section> result = new ArrayList<>();
 
         for (Section section : sections) {
             boolean matchesTime = true;

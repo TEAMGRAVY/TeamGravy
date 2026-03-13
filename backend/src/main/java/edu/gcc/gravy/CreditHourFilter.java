@@ -13,8 +13,8 @@ public class CreditHourFilter extends Filter {
     }
 
     @Override
-    public List<Section> apply(List<Section> sections) {
-        List<Section> results = new ArrayList<>();
+    public ArrayList<Section> apply(List<Section> sections) {
+        ArrayList<Section> results = new ArrayList<>();
         for (Section section : sections){
             if (Objects.equals(section.getCourse().getCreditHours(), creditHours)){
                 results.add(section);

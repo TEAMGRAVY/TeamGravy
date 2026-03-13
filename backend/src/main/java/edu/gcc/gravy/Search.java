@@ -4,34 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Search {
-    private List<Section> allSections;
-    private List<Section> currentResults;
-    private List<Filter> activeFilters;
+    private ArrayList<Section> allSections;
+    private ArrayList<Section> currentResults;
+    private ArrayList<Filter> activeFilters;
 
     // both of these make up a Query.
     private final String codeQuery;
     private final String keywordQuery;
 
     public Search(String codeQuery, String keywordQuery) {
+
         this.codeQuery = codeQuery;
         this.keywordQuery = keywordQuery;
-
         this.activeFilters = new ArrayList<>();
         this.allSections = new JSONReader().readJSON();
         this.currentResults = runBaseSearch();
 
     }
 
-    public List<Section> addFilter(Filter filter) {
+    public ArrayList<Section> addFilter(Filter filter) {
         activeFilters.add(filter);
         currentResults = filter.apply(currentResults);
         return currentResults;
     }
 
-    public List<Section> removeFilter(FilterType type) {
+    public ArrayList<Section> removeFilter(FilterType type) {
         activeFilters.removeIf(f -> f.getType() == type);
 
-        List<Section> results = allSections;
+        ArrayList<Section> results = allSections;
 
         for (Filter f : activeFilters) {
             results = f.apply(results);
@@ -50,14 +50,14 @@ public class Search {
         currentResults = runBaseSearch();
     }
 
-    public void setAllSections(List<Section> sections) {
+    public void setAllSections(ArrayList<Section> sections) {
         this.allSections = sections;
         this.currentResults = runBaseSearch();
     }
 
     // R1a + R1b base search
-    private List<Section> runBaseSearch() {
-        List<Section> results = new ArrayList<>();
+    private ArrayList<Section> runBaseSearch() {
+        ArrayList<Section> results = new ArrayList<>();
 
         String codeQ = codeQuery == null ? "" : codeQuery.toLowerCase().trim();
         String keyQ = keywordQuery == null ? "" : keywordQuery.toLowerCase().trim();
