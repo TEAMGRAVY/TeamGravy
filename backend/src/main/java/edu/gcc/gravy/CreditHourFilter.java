@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class CreditHourFilter extends Filter {
-    private int creditHours;
+    private final int creditHours;
 
     public CreditHourFilter(int creditHours) {
         super(FilterType.CREDITHOUR);
