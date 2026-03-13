@@ -35,8 +35,8 @@ public class MultipleFiltersTest {
         sections.add(makeSection(141,"Programming I","COMP",'A',3,"Hutchins",null));
         sections.add(makeSection(210,"Data Structures","COMP",'B',3,"Hutchins",null));
         sections.add(makeSection(101,"Calculus I","MATH",'A',4,"Flanders","Smith"));
-        sections.add(makeSection(101,"Calculus II","MATH",'B',4,"Smith",null));
-        sections.add(makeSection(101,"Advanced Programming","MATH",'B',3,"Dickinson",null));
+        sections.add(makeSection(102,"Calculus II","MATH",'B',4,"Smith",null));
+        sections.add(makeSection(201,"Advanced Programming","MATH",'B',3,"Dickinson",null));
         sections.add(makeSection(101,"Physics I","PHYS",'A',4,"Wagner","Fugate"));
 
         // Create the filters to be applied
@@ -56,6 +56,36 @@ public class MultipleFiltersTest {
             assertEquals(4, s.getCourse().getCreditHours());
             assertEquals("MATH",s.getCourse().getDepartment());
         }
+
+    }
+
+    @Test
+    void apply1FilterRemove1Filter() {
+
+    }
+
+    @Test
+    void apply3Filters() {
+
+    }
+
+    @Test
+    void applyAllFiltersWithResults(){
+
+    }
+
+    @Test
+    void applyAllFiltersWithNoResults() {
+
+    }
+
+    @Test
+    void applyAllFiltersAndRemoveAllFilters() {
+
+    }
+
+    @Test
+    void apply1Remove1Apply1() {
 
     }
 
