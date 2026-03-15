@@ -5,7 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/courses': 'http://localhost:7000'
+      '/courses':  'http://localhost:7000',
+      '/search':   'http://localhost:7000',
+      '/schedule': 'http://localhost:7000',
+      '/health':   'http://localhost:7000',
     }
   }
 })
