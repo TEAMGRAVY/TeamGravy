@@ -57,7 +57,7 @@ export default function App() {
 
       <label>
         Course Code:{" "}
-        <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. ACCT, CS101" />
+        <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP350" />
       </label>
       {" "}
       <label>
@@ -87,7 +87,7 @@ export default function App() {
         Credits: Min{" "}
         <input value={crMin} onChange={e => setCrMin(e.target.value)} placeholder="0" size="3" />
         {" "}Max{" "}
-        <input value={crMax} onChange={e => setCrMax(e.target.value)} placeholder="6" size="3" />
+        <input value={crMax} onChange={e => setCrMax(e.target.value)} placeholder="16" size="3" />
       </label>
       {" "}
       <label>
