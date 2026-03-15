@@ -16,7 +16,7 @@ public class JSONReader {
     public ArrayList<Course> allCourses = new ArrayList<>();
 
     public ArrayList<Section> readJSON() {
-        String jsonPath = "backend\\data_wolfe.json";
+        String jsonPath = "data_wolfe.json";
         try (InputStream inputStream = Files.newInputStream(Path.of(jsonPath).toAbsolutePath());
              JsonReader reader = new JsonReader(new InputStreamReader(inputStream))
         ) {
