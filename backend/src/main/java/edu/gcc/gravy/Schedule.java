@@ -22,28 +22,71 @@ public class Schedule {
     }
 
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
+
+        ArrayList<Section> alternates = (ArrayList<Section>) section.getCourse().getSections();
+        if (alternates == null){
+            alternates = new ArrayList<>();
+        } else {
+            alternates.remove(section);
+        }
+
         errorMessage = null;
 
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
+            for (Section curr : alternates){
+                if (curr.isOpen()){
+                    errorMessage = errorMessage.concat("\nAlternate open section: " + curr.getCourseCode());
+                }
+            }
             return false;
         }
 
         if (section.isFull()) {
             errorMessage = "Section " + section.getCourseCode() + " is full.";
+            for (Section curr : alternates){
+                if (curr.isFull()){
+                    errorMessage = errorMessage.concat("\nAlternate open section: " + curr.getCourseCode());
+                }
+            }
             return false;
         }
 
         for (Section other : sections) { // Scan for time conflict error
             if (section.hasTimeConflict(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " conflicts with section " +  other.getCourseCode();
+
+                for (Section curr : alternates){
+                    boolean conflict = false;
+                    for (Section comparison : sections) {
+                        if (curr.hasTimeConflict(comparison)) {
+                            conflict = true;
+                        }
+                    }
+                    if (!conflict) {
+                        errorMessage = errorMessage.concat("\nAlternate non-conflicting section: " + curr.getCourseCode());
+                    }
+                }
                 return false;
+
             }
         }
 
         for (Activity other: activities) { // Scan for conflict with activity
             if (section.hasTimeConflict(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " conflicts with activity " + other.getName();
+
+                for (Section curr : alternates){
+                    boolean conflict = false;
+                    for (Section comparison : sections) {
+                        if (curr.hasTimeConflict(comparison)) {
+                            conflict = true;
+                        }
+                    }
+                    if (!conflict) {
+                        errorMessage = errorMessage.concat("\nAlternate non-conflicting section: " + curr.getCourseCode());
+                    }
+                }
                 return false;
             }
         }
@@ -71,7 +114,29 @@ public class Schedule {
 
         for (Section other : sections) { // Scan for either error
             if (other.hasTimeConflict(activity)) {
+                ArrayList<Section> alternates = (ArrayList<Section>) other.getCourse().getSections();
+                if (alternates == null){
+                    alternates = new ArrayList<>();
+                } else {
+                    alternates.remove(other);
+                }
                 errorMessage = "Activity " + activity.getName() + " conflicts with section " + other.getCourseCode();
+                for (Section alternate : alternates){
+
+                    if (!alternate.hasTimeConflict(activity)){
+                        boolean conflict = false;
+                        for (Section scheduled : sections){
+                            if (alternate.hasTimeConflict(scheduled)) {
+                                conflict = true;
+                            }
+                        }
+                        if (!conflict){
+                            errorMessage = errorMessage.concat("\nAlternate non-conflicting section: " + alternate.getCourseCode());
+                        }
+
+                    }
+
+                }
                 return false;
             }
         }
