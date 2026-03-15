@@ -25,6 +25,10 @@ function sectionTimeStr(section) {
   return `${days} ${formatTime(slot.startTime)}–${formatTime(slot.endTime)}`;
 }
 
+function scheduleUrl(s) {
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
+}
+
 export default function App() {
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
@@ -43,7 +47,6 @@ export default function App() {
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
 
-  /* ── load dropdowns on mount ── */
   useEffect(() => {
     fetch("/courses")
       .then(r => r.json())
@@ -55,7 +58,6 @@ export default function App() {
     loadSchedule();
   }, []);
 
-  /* ── debounced auto-search whenever any input changes ── */
   useEffect(() => {
     const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo;
     if (!hasInput) { setResults([]); setSearched(false); return; }
@@ -85,15 +87,14 @@ export default function App() {
     setResults([]); setSearched(false);
   }
 
-  /* ── schedule ── */
   async function loadSchedule() {
     const res  = await fetch("/schedule");
     const data = await res.json();
     setSchedule(data);
   }
 
-  async function addToSchedule(index) {
-    const res = await fetch(`/schedule/${index}`, { method: "POST" });
+  async function addToSchedule(s) {
+    const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
       setSchedMsg("");
       loadSchedule();
@@ -103,8 +104,8 @@ export default function App() {
     }
   }
 
-  async function removeFromSchedule(index) {
-    await fetch(`/schedule/${index}`, { method: "DELETE" });
+  async function removeFromSchedule(s) {
+    await fetch(scheduleUrl(s), { method: "DELETE" });
     setSchedMsg("");
     loadSchedule();
   }
@@ -115,9 +116,8 @@ export default function App() {
 
   return (
     <div>
-      <h1>TeamGravy</h1>
+      <h1>Team Gravy Course Search</h1>
 
-      {/* ── Search ── */}
       <label>
         Course Code:{" "}
         <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP, ACCT101" />
@@ -130,7 +130,6 @@ export default function App() {
 
       <br /><br />
 
-      {/* ── Filters ── */}
       <label>
         Department:{" "}
         <select value={dept} onChange={e => setDept(e.target.value)}>
@@ -166,7 +165,6 @@ export default function App() {
 
       <button onClick={reset}>Reset</button>
 
-      {/* ── Results ── */}
       {searched && <p>{results.length} result{results.length !== 1 ? "s" : ""}</p>}
       <ul>
         {results.map((s, i) => {
@@ -181,7 +179,7 @@ export default function App() {
               {" — "}{s.course.creditHours} cr
               {" — "}{s.isOpen ? "Open" : "Closed"}
               {" "}
-              <button onClick={() => inSchedule ? removeFromSchedule(i) : addToSchedule(i)}>
+              <button onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}>
                 {inSchedule ? "Remove" : "Add"}
               </button>
             </li>
@@ -191,7 +189,6 @@ export default function App() {
 
       <hr />
 
-      {/* ── Schedule ── */}
       <h2>My Schedule</h2>
       {schedMsg && <p style={{ color: "red" }}>{schedMsg}</p>}
       <p>Total credits: {schedule.totalCredits}</p>
@@ -204,7 +201,7 @@ export default function App() {
             {" — "}{s.course.title}
             {" — "}{sectionTimeStr(s)}
             {" "}
-            <button onClick={() => removeFromSchedule(i)}>Remove</button>
+            <button onClick={() => removeFromSchedule(s)}>Remove</button>
           </li>
         ))}
       </ul>
