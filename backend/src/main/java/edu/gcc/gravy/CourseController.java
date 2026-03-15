@@ -19,6 +19,18 @@ public class CourseController {
                     (src, type, context) -> new JsonPrimitive(src.toString()))
             .create();
 
+    // Find a section in Main.allSections by dept + courseID + sectionID
+    private static Section findSection(String dept, String courseID, String sectionID) {
+        for (Section s : Main.allSections) {
+            if (s.getCourse().getDepartment().equals(dept)
+                    && String.valueOf(s.getCourse().getCourseID()).equals(courseID)
+                    && String.valueOf(s.getSectionID()).equals(sectionID)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
     public static void registerRoutes(Javalin app) {
 
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
@@ -72,18 +84,20 @@ public class CourseController {
             )));
         });
 
-        // POST /schedule/{index} — add a section by its index in Main.allSections
-        app.post("/schedule/{index}", ctx -> {
-            int index = Integer.parseInt(ctx.pathParam("index"));
+        // POST /schedule/{dept}/{courseID}/{sectionID} — add a section by identity
+        app.post("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+            Section section = findSection(
+                    ctx.pathParam("dept"),
+                    ctx.pathParam("courseID"),
+                    ctx.pathParam("sectionID")
+            );
 
-            if (index < 0 || index >= Main.allSections.size()) {
+            if (section == null) {
                 ctx.status(404).json(Map.of("error", "Section not found"));
                 return;
             }
 
-            Section section = Main.allSections.get(index);
             boolean added = schedule.addSection(section);
-
             if (added) {
                 ctx.status(201).json(Map.of("success", true));
             } else {
@@ -91,18 +105,20 @@ public class CourseController {
             }
         });
 
-        // DELETE /schedule/{index} — remove a section by its index in Main.allSections
-        app.delete("/schedule/{index}", ctx -> {
-            int index = Integer.parseInt(ctx.pathParam("index"));
+        // DELETE /schedule/{dept}/{courseID}/{sectionID} — remove a section by identity
+        app.delete("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+            Section section = findSection(
+                    ctx.pathParam("dept"),
+                    ctx.pathParam("courseID"),
+                    ctx.pathParam("sectionID")
+            );
 
-            if (index < 0 || index >= Main.allSections.size()) {
+            if (section == null) {
                 ctx.status(404).json(Map.of("error", "Section not found"));
                 return;
             }
 
-            Section section = Main.allSections.get(index);
             boolean removed = schedule.removeSection(section);
-
             if (removed) {
                 ctx.status(204);
             } else {
