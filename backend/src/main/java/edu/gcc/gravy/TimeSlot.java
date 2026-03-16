@@ -50,7 +50,7 @@ public class TimeSlot {
         int endIndex = (endTime.toSecondOfDay() - DAY_START.toSecondOfDay()) / (30 * 60);
 
         startIndex = Math.max(0, startIndex);
-        endIndex = Math.min(26, endIndex);
+        endIndex = Math.min(27, endIndex);
 
         for (int i = startIndex; i < endIndex; i++) {
             result[i] = true;
