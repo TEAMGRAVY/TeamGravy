@@ -27,7 +27,7 @@ public class Section {
         this.location = location;
     }
 
-    public Section(Course course, char sectionID, ArrayList<String> professor) {
+    public Section(Course course, char sectionID, ArrayList<String> professor) { // Minimal constructor for testing
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;

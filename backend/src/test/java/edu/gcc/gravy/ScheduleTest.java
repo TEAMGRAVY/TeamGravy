@@ -10,7 +10,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ScheduleTest {
-    // ---------- Helpers ----------
+    // ---------- HELPERS ----------
 
     private Course course(int id, int credits) {
         return new Course(id, "CS " + id, "CS", credits, "Fall");
@@ -62,7 +62,7 @@ class ScheduleTest {
         return new Schedule(null, "Fall Schedule", "Fall");
     }
 
-    // ---------- SECTION TESTS ----------
+    // ---------- ADDING/REMOVING SECTION TESTS ----------
 
     @Test
     void addSection_success() {
@@ -146,7 +146,7 @@ class ScheduleTest {
         assertFalse(schedule.removeSection(s));
     }
 
-    // ---------- ACTIVITY TESTS ----------
+    // ---------- ADDING/REMOVING ACTIVITY TESTS ----------
 
     @Test
     void addActivity_success() {

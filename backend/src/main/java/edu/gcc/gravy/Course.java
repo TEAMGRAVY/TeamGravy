@@ -9,7 +9,6 @@ public class Course {
     private String term;
     private List<Course> preReqs;
     private List<Course> coReqs;
-    private String yearStanding;
     private List<Section> sections;
     private double rating;
 
@@ -19,7 +18,6 @@ public class Course {
         this.department = department;
         this.creditHours = creditHours;
         this.term = term;
-        // May be more depending on the database
     }
 
     public int getCourseID() {
@@ -48,10 +46,6 @@ public class Course {
 
     public List<Course> getCoReqs() {
         return coReqs;
-    }
-
-    public String getYearStanding() {
-        return yearStanding;
     }
 
     public List<Section> getSections() {

@@ -21,7 +21,7 @@ public class Schedule {
         activities = new ArrayList<>();
     }
 
-    public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
+    public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements next sprint - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
         errorMessage = null;
 
         if (!section.isOpen()) {
@@ -106,7 +106,7 @@ public class Schedule {
 
             for (int r = 0; r < 27; r++) {
                 for (int c = 0; c < 5; c++) {
-                    if(rows[r] && cols[c] && calendar[r][c]) {
+                    if(rows[r] && cols[c] && calendar[r][c]) { // Error: Already a class at that time
                         return false;
                     }
                 }
@@ -170,10 +170,10 @@ public class Schedule {
         int daysWOClass = 0;
         boolean noClass;
 
-        for (int c = 0; c < 5; c++) {
+        for (int c = 0; c < 5; c++) { // check each day of the week
             noClass = true;
             for (int r = 0; r < 27; r++) {
-                if (calendar[r][c]) {
+                if (calendar[r][c]) { // if class found on that day
                     noClass = false;
                     break;
                 }
