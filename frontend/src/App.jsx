@@ -29,6 +29,21 @@ function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
 }
 
+const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToLabel(m) {
+  const h = Math.floor(m / 60);
+  const min = m % 60;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(min).padStart(2,"0")} ${ampm}`;
+}
+
 export default function App() {
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
@@ -113,6 +128,57 @@ export default function App() {
   const scheduleIds = new Set(
     schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}`)
   );
+
+  const START_DAY = 8 * 60;   // 8:00 AM
+  const END_DAY   = 21.5 * 60;  // 9:30 PM
+  const BLOCK = 30;
+
+  function buildGrid() {
+
+    const grid = {};
+    DAYS.forEach(d => grid[d] = {});
+
+    if (!schedule.sections) return grid;
+
+    schedule.sections.forEach(section => {
+
+      if (!section.time) return;
+
+      section.time.forEach(slot => {
+
+        const start = timeToMinutes(slot.startTime);
+        const end   = timeToMinutes(slot.endTime);
+
+        const span = Math.ceil((end - start) / BLOCK);
+
+        slot.days.forEach(day => {
+
+          grid[day][start] = {
+            span,
+            label: `${section.course.department} ${section.course.courseID}`,
+          };
+
+          // mark rows covered by span so they aren't drawn again
+          for (let t = start + BLOCK; t < end; t += BLOCK) {
+            grid[day][t] = { skip: true };
+          }
+
+        });
+
+      });
+
+    });
+
+  return grid;
+  }
+
+  const grid = buildGrid();
+
+  const timeBlocks = [];
+  for (let t = START_DAY; t < END_DAY; t += BLOCK) {
+    timeBlocks.push(t);
+  }
+
 
   return (
     <div>
@@ -205,6 +271,87 @@ export default function App() {
           </li>
         ))}
       </ul>
+      <hr />
+
+      <h2>Weekly Schedule Grid</h2>
+
+      <table style={{
+        margin: "auto",
+        borderCollapse: "collapse"
+      }}>
+
+        <thead>
+          <tr>
+            <th style = {{
+              width: "6%"
+            }}></th>
+            {DAYS.map(d => (
+              <th key={d} style={{ width: "18.8%" }}>
+                {DAY_LABELS[d]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {timeBlocks.map(time => (
+
+            <tr key={time}>
+
+              <td
+                style={{
+                  verticalAlign: "top",
+                  padding: 0,
+                  fontSize: "12px",
+                  position: "relative",
+                  top: "-12px"
+                }}
+              >
+                {minutesToLabel(time)}
+              </td>
+
+              {DAYS.map(day => {
+
+                const cell = grid[day][time];
+                if (cell?.skip) {
+                  return <td key={day} style={{display:"none"}}></td>;
+                }
+
+                if (cell) {
+                  if (cell.label){
+                    cell.color = "#a81b1b"
+                  }
+                  return (
+                    <td
+                      key={day}
+                      rowSpan={cell.span}
+                      style={{
+                        background: cell.color,
+                        border: "1px solid #aaa",
+                        padding: "6px",
+                        minWidth: "90px"
+                      }}
+                    >
+                      {cell.label}
+                    </td>
+                  );
+
+                }
+
+                return (
+                  <td key={day} style={{ border: "1px solid #ddd" }}></td>
+                );
+
+              })}
+
+            </tr>
+
+          ))}
+
+        </tbody>
+      </table>
+
     </div>
   );
 }
