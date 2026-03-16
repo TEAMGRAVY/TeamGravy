@@ -2,8 +2,9 @@ package edu.gcc.gravy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.*;
 
-public class Schedule {
+public class Schedule implements Serializable{
     private Student student;
     private String name;
     private List<Section> sections;
