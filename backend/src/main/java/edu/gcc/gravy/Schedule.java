@@ -1,6 +1,8 @@
 package edu.gcc.gravy;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Schedule {
@@ -187,30 +189,33 @@ public class Schedule {
     public int getLongestBreak() {
         int maxBreak = 0;
 
-        for (int c = 0; c < 5; c++) {
-            int prevEnd = -1;
-            int r = 0;
-            while (r < 27) {
-                int start = r;
-                if (calendar[r][c]) { // Start of a class
-                    while (r < 27 && calendar[r][c]) { // Find length of the class
-                        r++;
-                    }
-                    int end = r - 1; // End of the class
+        for (Day day : Day.values()) {
+            ArrayList<TimeSlot> slots = new ArrayList<>();
 
-                    if (prevEnd != -1) {
-                        int classBreak = start - prevEnd - 1; // 30 min blocks in between the classes
-                        if (classBreak > maxBreak) { maxBreak = classBreak; }
+            // Get timeslots per day
+            for (Section section: sections) {
+                for (TimeSlot slot: section.getTime()) {
+                    if (slot.getDays().contains(day)) {
+                        slots.add(slot);
                     }
-
-                    prevEnd = end;
-                } else { // No class found
-                    r++;
                 }
+            }
+
+            // Sort by start time
+            slots.sort(Comparator.comparing(TimeSlot::getStartTime)); // This line was an Intellij suggestion - This sorts by earliest time
+
+            // Compute breaks
+            for (int i = 1; i < slots.size(); i++) {
+                LocalTime prevEnd = slots.get(i - 1).getEndTime();
+                LocalTime nextStart = slots.get(i).getStartTime();
+
+                int breakMinutes = (int) java.time.Duration.between(prevEnd, nextStart).toMinutes(); // Calculates exact break in minutes
+
+                maxBreak = Math.max(maxBreak, breakMinutes);
             }
         }
 
-        return maxBreak * 30; // Max break in minutes
+        return maxBreak;
     }
 
     public String getScheduleName() {

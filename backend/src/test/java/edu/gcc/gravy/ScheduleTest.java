@@ -49,6 +49,11 @@ class ScheduleTest {
         return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "");
     }
 
+    private Section section(Course c, char id, ArrayList<TimeSlot> slots) {
+        profs.add("Dr. Smith");
+        return new Section(c, id, profs, 30, 10, slots, true, "");
+    }
+
     private Section fullSection(Course c, char id, TimeSlot t) {
         profs.add("Dr. Smith");
         return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "");
@@ -705,6 +710,39 @@ class ScheduleTest {
                 slot(20,30,21,30,Day.MONDAY)));
 
         assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_sectionWithMultipleTimeSlots() {
+        Schedule schedule = schedule();
+
+        ArrayList<TimeSlot> times = new ArrayList<>();
+        times.add(slot(9,0,10,0,Day.MONDAY));
+        times.add(slot(14,0,15,0,Day.MONDAY));
+
+        Section section = section(course(200,3), 'A', times);
+
+        schedule.addSection(section);
+
+        assertEquals(240, schedule.getLongestBreak()); // 10 → 2
+    }
+
+    // Test Bug
+    @Test
+    void getLongestBreak_handlesFiftyMinuteClasses() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(12,0,12,50,Day.MONDAY)));
+
+        schedule.addSection(section(course(102,3),'A',
+                slot(13,0,13,50,Day.MONDAY)));
+
+        schedule.addSection(section(course(103,3),'A',
+                slot(15,0,15,50,Day.MONDAY)));
+
+        // 1:50 → 3:00 = 70 minutes
+        assertEquals(70, schedule.getLongestBreak());
     }
 
     // ---------- MULTIPLE TIMESLOTS ----------
