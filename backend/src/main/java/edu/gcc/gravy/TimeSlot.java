@@ -44,7 +44,7 @@ public class TimeSlot {
     }
 
     public boolean[] getSlotNumbers() {
-        boolean[] result = new boolean[26];
+        boolean[] result = new boolean[27];
 
         int startIndex = (startTime.toSecondOfDay() - DAY_START.toSecondOfDay()) / (30 * 60);
         int endIndex = (endTime.toSecondOfDay() - DAY_START.toSecondOfDay()) / (30 * 60);
@@ -63,7 +63,7 @@ public class TimeSlot {
         return (int) Duration.between(startTime, endTime).toMinutes();
     }
 
-    private boolean sharesDay(TimeSlot other) {
+    public boolean sharesDay(TimeSlot other) {
         for (Day day: days) {
             if (other.days.contains(day)) return true;
         }
@@ -71,7 +71,7 @@ public class TimeSlot {
         return false;
     }
 
-    boolean sharesDay(Set<Day> other) {
+    public boolean sharesDay(Set<Day> other) {
         for (Day day: days) {
             if (other.contains(day)) return true;
         }
@@ -91,12 +91,5 @@ public class TimeSlot {
 
     public boolean endsBefore(LocalTime time) {
         return !endTime.isAfter(time);
-    }
-
-    public boolean occursOn(Set<Day> otherDays) {
-        for (Day day: otherDays) {
-            if (!days.contains(day)) return false;
-        }
-        return true;
     }
 }

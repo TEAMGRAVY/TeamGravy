@@ -10,8 +10,8 @@ public class Schedule {
     private List<Activity> activities;
     private String term;
     private String errorMessage;
-    // [1/2 hour slot][weekday]
-    private boolean[][] calendar = new boolean[26][5]; // Used for quick checks of time conflicts & updating UI checkboxes
+    // [1/2 hour slot][weekday] - 8:00am - 9:30pm
+    private boolean[][] calendar = new boolean[27][5]; // Used for quick checks of time conflicts & updating UI checkboxes
 
     public Schedule(Student student, String name, String term) {
         this.student = student;
@@ -22,71 +22,72 @@ public class Schedule {
     }
 
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
-        boolean timeConflict = false;
-        boolean sectionFull = section.isFull();
+        errorMessage = null;
 
-        if (sectionFull) {
-            getErrorMessage(timeConflict, sectionFull);
+        if (!section.isOpen()) {
+            errorMessage = "Section " + section.getCourseCode() + " is not open.";
             return false;
         }
 
-        for (Section other : sections) { // Scan for either error
-            if (!timeConflict) {
-                timeConflict = section.hasTimeConflict(other);
-            }
-        }
-
-        if (!timeConflict) {
-            for (Activity other: activities) { // Scan for conflict with activity
-                if (!timeConflict) {
-                    timeConflict = section.hasTimeConflict(other);
-                }
-            }
-        }
-
-        if (timeConflict) { // Error occured
-            getErrorMessage(timeConflict, sectionFull); // Change later based on GUI
+        if (section.isFull()) {
+            errorMessage = "Section " + section.getCourseCode() + " is full.";
             return false;
+        }
+
+        for (Section other : sections) { // Scan for time conflict error
+            if (section.hasTimeConflict(other)) {
+                errorMessage = "Section " + section.getCourseCode() + " conflicts with section " +  other.getCourseCode();
+                return false;
+            }
+        }
+
+        for (Activity other: activities) { // Scan for conflict with activity
+            if (section.hasTimeConflict(other)) {
+                errorMessage = "Section " + section.getCourseCode() + " conflicts with activity " + other.getName();
+                return false;
+            }
         }
 
         if(addCalendar(section.getTime())) {
-            sections.add(section); // should this increase the section's enrolled? - Probably this is separate from myGCC so no
+            sections.add(section);
             return true;
         }
+        errorMessage = "Internal calendar conflict.";
         return false;
     }
 
     public boolean removeSection(Section section) {
         if (sections.remove(section)) {
-            removeCalendar(section.getTime());
+            for (TimeSlot slot : section.getTime()) {
+                removeCalendar(slot);
+            }
             return true;
         }
         return false;
     }
 
     public boolean addActivity(Activity activity) {
-        boolean timeConflict = false;
+        errorMessage = null;
+
         for (Section other : sections) { // Scan for either error
-            if (!timeConflict) {
-                timeConflict = other.hasTimeConflict(activity);
+            if (other.hasTimeConflict(activity)) {
+                errorMessage = "Activity " + activity.getName() + " conflicts with section " + other.getCourseCode();
+                return false;
             }
         }
 
         for (Activity other: activities) { // Scan for conflict with activity
-            if (!timeConflict) {
-                timeConflict = activity.hasTimeConflict(other);
+            if (activity.hasTimeConflict(other)) {
+                errorMessage = "Activity " + activity.getName() + " conflicts with activity " + other.getName();
+                return false;
             }
-        }
-
-        if (timeConflict) { // Error occured
-            getErrorMessage(timeConflict, false); // Change later based on GUI
-            return false;
         }
 
         if (addCalendar(activity.getTime())) {
             activities.add(activity);
             return true;
         }
+        errorMessage = "Internal calendar conflict.";
         return false;
     }
 
@@ -98,11 +99,41 @@ public class Schedule {
         return false;
     }
 
-    public boolean addCalendar(TimeSlot time) {
-        boolean[] rows = time.getSlotNumbers(); // 26
+    public boolean addCalendar(ArrayList<TimeSlot> time) { // Section - multiple TimeSlots
+        for (TimeSlot slot : time) {
+            boolean[] rows = slot.getSlotNumbers(); // 27
+            boolean[] cols = slot.getDayNumbers(); // 5
+
+            for (int r = 0; r < 27; r++) {
+                for (int c = 0; c < 5; c++) {
+                    if(rows[r] && cols[c] && calendar[r][c]) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (TimeSlot slot : time) { // Apply changes
+            boolean[] rows = slot.getSlotNumbers(); // 27
+            boolean[] cols = slot.getDayNumbers(); // 5
+
+            for (int r = 0; r < 27; r++) {
+                for (int c = 0; c < 5; c++) {
+                    if(rows[r] && cols[c]) {
+                        calendar[r][c] = true;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean addCalendar(TimeSlot time) { // Activity
+        boolean[] rows = time.getSlotNumbers(); // 27
         boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 26; r++) {
+        for (int r = 0; r < 27; r++) {
             for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     if (calendar[r][c]) return false;
@@ -114,10 +145,10 @@ public class Schedule {
     }
 
     public void removeCalendar(TimeSlot time) {
-        boolean[] rows = time.getSlotNumbers(); // 26
+        boolean[] rows = time.getSlotNumbers(); // 27
         boolean[] cols = time.getDayNumbers(); // 5
 
-        for (int r = 0; r < 26; r++) {
+        for (int r = 0; r < 27; r++) {
             for (int c = 0; c < 5; c++) {
                 if(rows[r] && cols[c]) {
                     calendar[r][c] = false;
@@ -136,11 +167,50 @@ public class Schedule {
     }
 
     public int getDaysWithoutClass() {
-        return -1;
+        int daysWOClass = 0;
+        boolean noClass;
+
+        for (int c = 0; c < 5; c++) {
+            noClass = true;
+            for (int r = 0; r < 27; r++) {
+                if (calendar[r][c]) {
+                    noClass = false;
+                    break;
+                }
+            }
+            if (noClass) daysWOClass++;
+        }
+
+        return daysWOClass;
     }
 
     public int getLongestBreak() {
-        return -1;
+        int maxBreak = 0;
+
+        for (int c = 0; c < 5; c++) {
+            int prevEnd = -1;
+            int r = 0;
+            while (r < 27) {
+                int start = r;
+                if (calendar[r][c]) { // Start of a class
+                    while (r < 27 && calendar[r][c]) { // Find length of the class
+                        r++;
+                    }
+                    int end = r - 1; // End of the class
+
+                    if (prevEnd != -1) {
+                        int classBreak = start - prevEnd - 1; // 30 min blocks in between the classes
+                        if (classBreak > maxBreak) { maxBreak = classBreak; }
+                    }
+
+                    prevEnd = end;
+                } else { // No class found
+                    r++;
+                }
+            }
+        }
+
+        return maxBreak * 30; // Max break in minutes
     }
 
     public String getScheduleName() {
@@ -159,7 +229,7 @@ public class Schedule {
         return term;
     }
 
-    public String getErrorMessage(boolean timeConflict, boolean sectionFull) {
+    public String getErrorMessage() {
         return errorMessage;
     }
 
