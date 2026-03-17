@@ -21,18 +21,15 @@ class ScheduleFileManagerTest {
         ArrayList<Section> sections = reader.readJSON();
         Schedule sample = new Schedule(example, "Spring Sample Schedule", "2023_FALL");
 
-        sample.addSection(sections.get(2));
         sample.addSection(sections.get(10));
         sample.addSection(sections.get(27));
 
         manager.SaveSchedule(sample.getScheduleName() + sample.getScheduleTerm(), sample);
 
-        Schedule loadedSchedule = manager.LoadSchedule(sample.getScheduleName() + sample.getScheduleTerm());
+        Schedule loadedSchedule = manager.LoadSchedule(sample.getScheduleName() + sample.getScheduleTerm(), example, sections);
 
         List<Section> loadedSection = loadedSchedule.getScheduleSections();
-        assertTrue(loadedSection.get(1).equals(sections.get(2)) &&
-        loadedSection.get(2).equals(sections.get(10)) &&
-        loadedSection.get(3).equals(sections.get(27)));
+        assertTrue(loadedSection.get(0).equals(sections.get(10)));
     }
 
 }

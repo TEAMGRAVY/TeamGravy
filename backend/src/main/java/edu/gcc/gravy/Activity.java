@@ -1,9 +1,8 @@
 package edu.gcc.gravy;
 
-import java.io.Serializable;
 import java.util.Objects;
 
-public class Activity  implements Serializable {
+public class Activity {
     private String name;
     private TimeSlot time;
 

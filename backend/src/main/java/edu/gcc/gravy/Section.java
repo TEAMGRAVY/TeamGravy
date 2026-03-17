@@ -2,9 +2,9 @@ package edu.gcc.gravy;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.io.Serializable;
 
-public class Section implements Serializable{
+
+public class Section {
     private Course course;
     private char sectionID;
     private ArrayList<String> professor;

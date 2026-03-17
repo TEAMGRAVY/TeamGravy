@@ -2,7 +2,7 @@ package edu.gcc.gravy;
 import java.io.Serializable;
 import java.util.List;
 
-public class Course implements Serializable {
+public class Course {
     private int courseID;
     private String title;
     private String department;
