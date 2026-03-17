@@ -24,6 +24,8 @@ public class Schedule {
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
         errorMessage = null;
 
+        // Next Sprint: disallow adding the same course code twice
+
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
             return false;
