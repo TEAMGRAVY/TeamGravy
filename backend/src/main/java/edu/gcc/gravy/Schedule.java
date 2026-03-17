@@ -34,6 +34,7 @@ public class Schedule {
 
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
+            // Scan through alternate sections for ones that are open.
             for (Section curr : alternates){
                 if (curr.isOpen()){
                     errorMessage = errorMessage.concat("\nAlternate open section: " + curr.getCourseCode());
@@ -44,8 +45,9 @@ public class Schedule {
 
         if (section.isFull()) {
             errorMessage = "Section " + section.getCourseCode() + " is full.";
+            // Scan through alternate sections for sections that are not full.
             for (Section curr : alternates){
-                if (curr.isFull()){
+                if (!curr.isFull()){
                     errorMessage = errorMessage.concat("\nAlternate open section: " + curr.getCourseCode());
                 }
             }
@@ -56,6 +58,7 @@ public class Schedule {
             if (section.hasTimeConflict(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " conflicts with section " +  other.getCourseCode();
 
+                // Scan through alternate sections in the same course for a potential fit.
                 for (Section curr : alternates){
                     boolean conflict = false;
                     for (Section comparison : sections) {
@@ -63,6 +66,7 @@ public class Schedule {
                             conflict = true;
                         }
                     }
+                    // Add the section to the displayed message if no conflicts of same type.
                     if (!conflict) {
                         errorMessage = errorMessage.concat("\nAlternate non-conflicting section: " + curr.getCourseCode());
                     }
@@ -76,6 +80,7 @@ public class Schedule {
             if (section.hasTimeConflict(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " conflicts with activity " + other.getName();
 
+                // Scan through alternate sections for one that may not conflict with other parts of the schedule.
                 for (Section curr : alternates){
                     boolean conflict = false;
                     for (Section comparison : sections) {
@@ -121,8 +126,8 @@ public class Schedule {
                     alternates.remove(other);
                 }
                 errorMessage = "Activity " + activity.getName() + " conflicts with section " + other.getCourseCode();
+                // Scan for a section that does not interfere with schedule or activity.
                 for (Section alternate : alternates){
-
                     if (!alternate.hasTimeConflict(activity)){
                         boolean conflict = false;
                         for (Section scheduled : sections){
