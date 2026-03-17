@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, Link} from "react-router-dom";
+import CalendarPage from "./CalendarPage";
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -18,7 +20,7 @@ function sectionDays(section) {
   return unique.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 }
 
-function sectionTimeStr(section) {
+export function sectionTimeStr(section) {
   if (!section.time || section.time.length === 0) return "No schedule";
   const slot = section.time[0];
   const days = sectionDays(section).map(d => DAY_LABELS[d]).join("/");
@@ -116,8 +118,17 @@ export default function App() {
 
   return (
     <div>
-      <h1>Team Gravy Course Search</h1>
 
+      <nav style={{ marginBottom: "20px" }}>
+        <Link to="/">Search</Link>
+        {" | "}
+        <Link to="/calendar">Calendar</Link>
+      </nav>
+
+      <Routes>
+        <Route
+        path = "/"
+        element = {<>
       <label>
         Course Code:{" "}
         <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP, ACCT101" />
@@ -205,6 +216,16 @@ export default function App() {
           </li>
         ))}
       </ul>
+      <hr />
+        </>
+        }
+      />
+      <Route
+      path = "/Calendar"
+      element={<CalendarPage />}
+      />
+      </Routes>
+
     </div>
   );
 }
