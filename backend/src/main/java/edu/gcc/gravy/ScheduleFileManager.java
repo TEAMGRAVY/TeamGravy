@@ -20,20 +20,20 @@ public class ScheduleFileManager {
         return manager;
     }
 
-    public void SaveSchedule(String fileName, Schedule object){
+    public boolean SaveSchedule(String fileName, Schedule object){
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
         try (FileWriter writer = new FileWriter(fileName)) {
             gson.toJson(new ScheduleFileFormat(object), writer);
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-
-
-    public static Schedule LoadSchedule(String fileName, Student student, ArrayList<Section> allSections){
+    public Schedule LoadSchedule(String fileName, Student student, ArrayList<Section> allSections){
         Gson gson = new Gson();
         try (FileReader reader = new FileReader(fileName)){
             return gson.fromJson(reader, ScheduleFileFormat.class).toSchedule(student, allSections);
