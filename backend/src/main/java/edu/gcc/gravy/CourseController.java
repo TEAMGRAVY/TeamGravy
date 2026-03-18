@@ -2,6 +2,9 @@ package edu.gcc.gravy;
 
 import io.javalin.Javalin;
 import java.time.LocalTime;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.nio.file.Files;
@@ -75,10 +78,20 @@ public class CourseController {
             if (credits != null && !credits.isBlank())
                 search.addFilter(new CreditHourFilter(Integer.parseInt(credits)));
 
-            if ((timeFrom != null && !timeFrom.isBlank()) || (timeTo != null && !timeTo.isBlank())) {
+            String daysParam = ctx.queryParam("days");
+            Set<Day> daySet = null;
+            if (daysParam != null && !daysParam.isBlank()) {
+                daySet = Arrays.stream(daysParam.split(","))
+                        .map(Day::valueOf)
+                        .collect(Collectors.toSet());
+            }
+
+            if ((timeFrom != null && !timeFrom.isBlank())
+                    || (timeTo != null && !timeTo.isBlank())
+                    || daySet != null) {
                 LocalTime from = (timeFrom != null && !timeFrom.isBlank()) ? LocalTime.parse(timeFrom) : null;
                 LocalTime to   = (timeTo   != null && !timeTo.isBlank())   ? LocalTime.parse(timeTo)   : null;
-                search.addFilter(new TimeRangeFilter(from, to, null));
+                search.addFilter(new TimeRangeFilter(from, to, daySet));
             }
 
             if (term != null && !term.isBlank())

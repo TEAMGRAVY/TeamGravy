@@ -2,6 +2,7 @@ package edu.gcc.gravy;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,14 +24,15 @@ public class TimeRangeFilter extends Filter {
 
         for (Section section : sections) {
             boolean matchesTime = true;
-            boolean matchesDay = (days == null);
+
+            Set<Day> sectionDays = new HashSet<>();
+            for (TimeSlot slot : section.getTime()) { // Get all the days this section is held on
+                sectionDays.addAll(slot.getDays());
+            }
+
+            boolean matchesDay = (days == null) || sectionDays.containsAll(days); // If day filter is not set or the section contains all days in the filter
 
             for (TimeSlot slot : section.getTime()) {
-                // Check if any days match
-                if (days != null && slot.sharesDay(days)) {
-                    matchesDay = true;
-                }
-
                 LocalTime startTime = slot.getStartTime();
 
                 // Check earliestTime if set

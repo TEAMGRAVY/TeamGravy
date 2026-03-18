@@ -44,6 +44,7 @@ export default function App() {
   const [timeFrom, setTimeFrom] = useState("");
   const [timeTo,   setTimeTo]   = useState("");
   const [term,     setTerm]     = useState("");
+  const [days,     setDays]     = useState([]);  // NEW
 
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
@@ -51,6 +52,13 @@ export default function App() {
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
+
+  // NEW: toggle a day in/out of the days array
+  function toggleDay(day) {
+    setDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  }
 
   useEffect(() => {
     fetch("/courses")
@@ -78,6 +86,7 @@ export default function App() {
       if (timeFrom) params.set("timeFrom", timeFrom);
       if (timeTo)   params.set("timeTo",   timeTo);
       if (term)     params.set("term",     term);
+      if (days.length)  params.set("days",     days.join(","));  // NEW
 
       const res  = await fetch(`/search?${params}`);
       const data = await res.json();
@@ -86,11 +95,12 @@ export default function App() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term]);
+  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days]); // days added
 
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
     setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
+    setDays([]);  // NEW
     setResults([]); setSearched(false);
   }
 
@@ -214,6 +224,20 @@ export default function App() {
         To:{" "}
         <input value={timeTo} onChange={e => setTimeTo(e.target.value)} placeholder="17:00" size="6" />
       </label>
+
+    {/* NEW: Day checkboxes */}
+    <br /><br />
+    <span>Days: </span>
+    {Object.entries(DAY_LABELS).map(([day, label]) => (
+      <label key={day} style={{ marginRight: "8px" }}>
+        <input
+          type="checkbox"
+          checked={days.includes(day)}
+          onChange={() => toggleDay(day)}
+        />
+        {label}
+      </label>
+    ))}
 
       <br /><br />
 
