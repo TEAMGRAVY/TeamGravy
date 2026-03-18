@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, Link} from "react-router-dom";
+import CalendarPage from "./CalendarPage";
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -18,7 +20,7 @@ function sectionDays(section) {
   return unique.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 }
 
-function sectionTimeStr(section) {
+export function sectionTimeStr(section) {
   if (!section.time || section.time.length === 0) return "No schedule";
   const slot = section.time[0];
   const days = sectionDays(section).map(d => DAY_LABELS[d]).join("/");
@@ -26,12 +28,13 @@ function sectionTimeStr(section) {
 }
 
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
 export default function App() {
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
+  const [terms,       setTerms]       = useState([]);
 
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
@@ -40,12 +43,14 @@ export default function App() {
   const [credits,  setCredits]  = useState("");
   const [timeFrom, setTimeFrom] = useState("");
   const [timeTo,   setTimeTo]   = useState("");
+  const [term,     setTerm]     = useState("");
 
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
 
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
+  const [scheduleName, setScheduleName] = useState("My Schedule");
 
   useEffect(() => {
     fetch("/courses")
@@ -54,12 +59,13 @@ export default function App() {
         const raw = Array.isArray(json) ? json : (json.classes || []);
         setDepartments([...new Set(raw.map(c => c.subject))].sort());
         setProfessors([...new Set(raw.flatMap(c => c.faculty))].sort());
+        setTerms([...new Set(raw.map(c => c.semester).filter(Boolean))].sort().reverse());
       });
     loadSchedule();
   }, []);
 
   useEffect(() => {
-    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo;
+    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term;
     if (!hasInput) { setResults([]); setSearched(false); return; }
 
     const timer = setTimeout(async () => {
@@ -71,6 +77,7 @@ export default function App() {
       if (credits)  params.set("credits",  credits);
       if (timeFrom) params.set("timeFrom", timeFrom);
       if (timeTo)   params.set("timeTo",   timeTo);
+      if (term)     params.set("term",     term);
 
       const res  = await fetch(`/search?${params}`);
       const data = await res.json();
@@ -79,11 +86,11 @@ export default function App() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo]);
+  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term]);
 
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
-    setCredits(""); setTimeFrom(""); setTimeTo("");
+    setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
     setResults([]); setSearched(false);
   }
 
@@ -91,6 +98,26 @@ export default function App() {
     const res  = await fetch("/schedule");
     const data = await res.json();
     setSchedule(data);
+  }
+
+  async function loadSavedSchedule(scheduleName){
+    const res = await fetch(`/schedule/load/${scheduleName}`, { method: "POST" });
+    loadSchedule();
+  }
+
+  async function saveSchedule(scheduleName){
+    const res = await fetch(`/schedule/save/${scheduleName}`, { method: "POST" });
+    if (res.ok){
+      setSchedMsg("Saved Successfully");
+    } else {
+      const data = await res.json();
+      setSchedMsg(data.error);
+    }
+  }
+
+  async function newSchedule(){
+    const res = await fetch(`/schedule/new`, { method: "POST"});
+    loadSchedule();
   }
 
   async function addToSchedule(s) {
@@ -111,13 +138,32 @@ export default function App() {
   }
 
   const scheduleIds = new Set(
-    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}`)
+    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
   );
 
   return (
     <div>
-      <h1>Team Gravy Course Search</h1>
 
+      <nav style={{ marginBottom: "20px" }}>
+        <Link to="/" onClick={() => loadSchedule()}>Search</Link>
+        {" | "}
+        <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
+        
+      </nav>
+      
+      <label> Schedule Name:{" "}
+        <input value={scheduleName} onChange={e => setScheduleName(e.target.value)} />
+        {" "}<button onClick={() => saveSchedule(scheduleName)}>Save</button>
+        {" "}<button onClick={() => loadSavedSchedule(scheduleName)}>Load</button>
+        {" "}<button onClick={() => newSchedule()}>New</button>
+      </label>
+      <br /><br />
+
+
+      <Routes>
+        <Route
+        path="/"
+        element={<>
       <label>
         Course Code:{" "}
         <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP, ACCT101" />
@@ -147,6 +193,14 @@ export default function App() {
       </label>
       {" "}
       <label>
+        Term:{" "}
+        <select value={term} onChange={e => setTerm(e.target.value)}>
+          <option value="">All</option>
+          {terms.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+        </select>
+      </label>
+      {" "}
+      <label>
         Credits:{" "}
         <input value={credits} onChange={e => setCredits(e.target.value)} placeholder="e.g. 3" size="3" />
       </label>
@@ -168,7 +222,7 @@ export default function App() {
       {searched && <p>{results.length} result{results.length !== 1 ? "s" : ""}</p>}
       <ul>
         {results.map((s, i) => {
-          const id = `${s.course.department}${s.course.courseID}${s.sectionID}`;
+          const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
           const inSchedule = scheduleIds.has(id);
           return (
             <li key={i}>
@@ -177,6 +231,7 @@ export default function App() {
               {" — "}{s.professor[0] ?? "TBA"}
               {" — "}{sectionTimeStr(s)}
               {" — "}{s.course.creditHours} cr
+              {" — "}{s.course.term}
               {" — "}{s.isOpen ? "Open" : "Closed"}
               {" "}
               <button onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}>
@@ -205,6 +260,16 @@ export default function App() {
           </li>
         ))}
       </ul>
+      <hr />
+        </>
+        }
+      />
+      <Route
+      path="/Calendar"
+      element={<CalendarPage />}
+      />
+      </Routes>
+
     </div>
   );
 }

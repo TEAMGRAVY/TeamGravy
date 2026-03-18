@@ -1,4 +1,5 @@
 package edu.gcc.gravy;
+import java.io.Serializable;
 import java.util.List;
 
 public class Course {

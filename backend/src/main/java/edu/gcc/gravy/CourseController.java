@@ -13,22 +13,33 @@ import com.google.gson.JsonSerializer;
 
 public class CourseController {
 
-    private static final Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
+    private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
                     (src, type, context) -> new JsonPrimitive(src.toString()))
             .create();
 
     // Find a section in Main.allSections by dept + courseID + sectionID
-    private static Section findSection(String dept, String courseID, String sectionID) {
+    private static Section findSection(String dept, String courseID, String sectionID, String term) {
         for (Section s : Main.allSections) {
             if (s.getCourse().getDepartment().equals(dept)
                     && String.valueOf(s.getCourse().getCourseID()).equals(courseID)
-                    && String.valueOf(s.getSectionID()).equals(sectionID)) {
+                    && String.valueOf(s.getSectionID()).equals(sectionID)
+                    && s.getCourse().getTerm().equals(term)) {
                 return s;
             }
         }
         return null;
+    }
+
+    private static Schedule loadSavedSchedule(String scheduleName){
+        ScheduleFileManager manager = ScheduleFileManager.getInstance();
+        return manager.LoadSchedule(scheduleName, null, Main.allSections);
+    }
+
+    private static boolean saveSchedule(String scheduleName){
+        ScheduleFileManager manager = ScheduleFileManager.getInstance();
+        return manager.SaveSchedule(scheduleName, schedule);
     }
 
     public static void registerRoutes(Javalin app) {
@@ -50,6 +61,7 @@ public class CourseController {
             String credits  = ctx.queryParam("credits");
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
+            String term = ctx.queryParam("term");
 
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
@@ -69,6 +81,9 @@ public class CourseController {
                 search.addFilter(new TimeRangeFilter(from, to, null));
             }
 
+            if (term != null && !term.isBlank())
+                search.addFilter(new TermFilter(term));
+
             ctx.contentType("application/json");
             ctx.result(gson.toJson(search.getResults()));
         });
@@ -85,11 +100,12 @@ public class CourseController {
         });
 
         // POST /schedule/{dept}/{courseID}/{sectionID} — add a section by identity
-        app.post("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+        app.post("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
                     ctx.pathParam("courseID"),
-                    ctx.pathParam("sectionID")
+                    ctx.pathParam("sectionID"),
+                    ctx.pathParam("term")
             );
 
             if (section == null) {
@@ -106,11 +122,12 @@ public class CourseController {
         });
 
         // DELETE /schedule/{dept}/{courseID}/{sectionID} — remove a section by identity
-        app.delete("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+        app.delete("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
                     ctx.pathParam("courseID"),
-                    ctx.pathParam("sectionID")
+                    ctx.pathParam("sectionID"),
+                    ctx.pathParam("term")
             );
 
             if (section == null) {
@@ -124,6 +141,37 @@ public class CourseController {
             } else {
                 ctx.status(404).json(Map.of("error", "Section not in schedule"));
             }
+        });
+
+        // POST /schedule/load/{scheduleName} - Load a schedule.
+        app.post("/schedule/load/{scheduleName}", ctx -> {
+            Schedule tempSchedule = loadSavedSchedule(
+                    ctx.pathParam("scheduleName")
+            );
+            if (tempSchedule == null){
+                ctx.status(404).json(Map.of("error", "Schedule not found"));
+                return;
+            }
+            schedule = tempSchedule;
+            ctx.status(204).json(Map.of("success", true));
+        });
+
+        // POST /schedule/save/{scheduleName} - Save the schedule.
+        app.post("/schedule/save/{scheduleName}", ctx -> {
+            boolean saveSuccess = saveSchedule(
+                    ctx.pathParam("scheduleName")
+            );
+            if (!saveSuccess){
+                ctx.status(404).json(Map.of("error", "Schedule not saved"));
+                return;
+            }
+            ctx.status(204).json(Map.of("success", true));
+        });
+
+        app.post("/schedule/new", ctx -> {
+            schedule = new Schedule(null,
+                    "New Schedule",
+                    "2026_Spring");
         });
     }
 }
