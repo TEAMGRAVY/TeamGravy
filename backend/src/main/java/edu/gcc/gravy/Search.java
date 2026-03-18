@@ -8,7 +8,7 @@ import java.util.List;
  *
  * BIG PICTURE:
  * A Search object is built with an optional course code query and/or keyword query.
- * These two strings form the "base query" — a broad, text-based sweep across all
+ * These two strings form the "base query" - a broad, text-based sweep across all
  * available sections loaded by JSONReader into Main.allSections. From that base
  * result, the caller (CourseController) can layer on any number of Filter objects
  * (DepartmentFilter, ProfessorFilter, CreditHourFilter, TimeRangeFilter, etc.) to
@@ -16,7 +16,7 @@ import java.util.List;
  * which point the entire filter chain replays from scratch to stay consistent.
  *
  * STATE MODEL:
- *   allSections     — the full master list of every Section from JSONReader. Never modified.
+ *   allSections     — the full master list of every Section from JSONReader.
  *   currentResults  — the live filtered view the UI/controller reads. Updated after every change.
  *   activeFilters   — the ordered list of Filters currently applied on top of the base search.
  */
@@ -36,7 +36,7 @@ public class Search {
     /**
      * Constructs a new Search with the given base query strings.
      *
-     * allSections starts empty here — the caller must immediately follow up with
+     * allSections starts empty here - the caller must immediately follow up with
      * setAllSections() to inject Main.allSections, which triggers runBaseSearch()
      * again with real data.
      *
@@ -62,10 +62,10 @@ public class Search {
     /**
      * Adds a Filter and immediately narrows currentResults with it.
      *
-     * Takes a shortcut: rather than replaying all filters from allSections,
+     * Rather than replaying all filters from allSections,
      * it applies the new filter only to currentResults (which already has all
      * previous filters baked in). This is efficient but means removal must
-     * replay from scratch — see removeFilter().
+     * replay from scratch - see removeFilter().
      *
      * @param filter any Filter subclass (DepartmentFilter, ProfessorFilter, etc.)
      * @return updated currentResults after the new filter is applied
@@ -81,7 +81,7 @@ public class Search {
      * Removes all filters of the given FilterType and recomputes results from scratch.
      *
      * Because addFilter() works incrementally, sections excluded by a filter are gone
-     * from currentResults — you can't simply undo them. So removal must restart from
+     * from currentResults so you can't simply undo them. Removal must restart from
      * allSections and replay every remaining filter in order to get a correct result.
      *
      * Note: removeIf clears ALL filters of the given type at once, so if the same
@@ -131,8 +131,7 @@ public class Search {
      *
      * Called by CourseController after JSONReader loads Main.allSections. Until this
      * is called, allSections is empty and every search returns nothing. Active filters
-     * are NOT re-applied here — this is intended to be called during initial setup
-     * before any filters are added.
+     * are NOT re-applied here.
      *
      * @param sections the full list of all Sections parsed by JSONReader
      */
@@ -151,8 +150,8 @@ public class Search {
      * Matching rules:
      *   - Both queries are lowercased and trimmed so matching is case-insensitive and
      *     whitespace-tolerant before comparison.
-     *   - A null or blank query is a wildcard — it matches every section automatically.
-     *   - codeQuery uses a substring check on getCourseCode()           e.g. "cs 2" matches "cs 214 a"
+     *   - A null or blank query is a wildcard - it matches every section automatically.
+     *   - codeQuery uses a substring check on getCourseCode()           e.g. "cs 2" matches "COMP 220 a"
      *   - keywordQuery uses a substring check on getCourse().getTitle() e.g. "data" matches "Data Structures"
      *   - A section must satisfy BOTH checks to be included (AND logic).
      *   - If a section has a null course code or title, it is treated as "" and only
