@@ -28,12 +28,13 @@ export function sectionTimeStr(section) {
 }
 
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
 export default function App() {
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
+  const [terms,       setTerms]       = useState([]);
 
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
@@ -42,6 +43,7 @@ export default function App() {
   const [credits,  setCredits]  = useState("");
   const [timeFrom, setTimeFrom] = useState("");
   const [timeTo,   setTimeTo]   = useState("");
+  const [term,     setTerm]     = useState("");
 
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
@@ -57,12 +59,13 @@ export default function App() {
         const raw = Array.isArray(json) ? json : (json.classes || []);
         setDepartments([...new Set(raw.map(c => c.subject))].sort());
         setProfessors([...new Set(raw.flatMap(c => c.faculty))].sort());
+        setTerms([...new Set(raw.map(c => c.semester).filter(Boolean))].sort().reverse());
       });
     loadSchedule();
   }, []);
 
   useEffect(() => {
-    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo;
+    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term;
     if (!hasInput) { setResults([]); setSearched(false); return; }
 
     const timer = setTimeout(async () => {
@@ -74,6 +77,7 @@ export default function App() {
       if (credits)  params.set("credits",  credits);
       if (timeFrom) params.set("timeFrom", timeFrom);
       if (timeTo)   params.set("timeTo",   timeTo);
+      if (term)     params.set("term",     term);
 
       const res  = await fetch(`/search?${params}`);
       const data = await res.json();
@@ -82,11 +86,11 @@ export default function App() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo]);
+  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term]);
 
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
-    setCredits(""); setTimeFrom(""); setTimeTo("");
+    setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
     setResults([]); setSearched(false);
   }
 
@@ -134,7 +138,7 @@ export default function App() {
   }
 
   const scheduleIds = new Set(
-    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}`)
+    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
   );
 
   return (
@@ -158,8 +162,8 @@ export default function App() {
 
       <Routes>
         <Route
-        path = "/"
-        element = {<>
+        path="/"
+        element={<>
       <label>
         Course Code:{" "}
         <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP, ACCT101" />
@@ -189,6 +193,14 @@ export default function App() {
       </label>
       {" "}
       <label>
+        Term:{" "}
+        <select value={term} onChange={e => setTerm(e.target.value)}>
+          <option value="">All</option>
+          {terms.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+        </select>
+      </label>
+      {" "}
+      <label>
         Credits:{" "}
         <input value={credits} onChange={e => setCredits(e.target.value)} placeholder="e.g. 3" size="3" />
       </label>
@@ -210,7 +222,7 @@ export default function App() {
       {searched && <p>{results.length} result{results.length !== 1 ? "s" : ""}</p>}
       <ul>
         {results.map((s, i) => {
-          const id = `${s.course.department}${s.course.courseID}${s.sectionID}`;
+          const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
           const inSchedule = scheduleIds.has(id);
           return (
             <li key={i}>
@@ -219,6 +231,7 @@ export default function App() {
               {" — "}{s.professor[0] ?? "TBA"}
               {" — "}{sectionTimeStr(s)}
               {" — "}{s.course.creditHours} cr
+              {" — "}{s.course.term}
               {" — "}{s.isOpen ? "Open" : "Closed"}
               {" "}
               <button onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}>
@@ -252,7 +265,7 @@ export default function App() {
         }
       />
       <Route
-      path = "/Calendar"
+      path="/Calendar"
       element={<CalendarPage />}
       />
       </Routes>

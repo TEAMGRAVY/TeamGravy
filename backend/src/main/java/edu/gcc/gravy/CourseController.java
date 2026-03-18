@@ -20,11 +20,12 @@ public class CourseController {
             .create();
 
     // Find a section in Main.allSections by dept + courseID + sectionID
-    private static Section findSection(String dept, String courseID, String sectionID) {
+    private static Section findSection(String dept, String courseID, String sectionID, String term) {
         for (Section s : Main.allSections) {
             if (s.getCourse().getDepartment().equals(dept)
                     && String.valueOf(s.getCourse().getCourseID()).equals(courseID)
-                    && String.valueOf(s.getSectionID()).equals(sectionID)) {
+                    && String.valueOf(s.getSectionID()).equals(sectionID)
+                    && s.getCourse().getTerm().equals(term)) {
                 return s;
             }
         }
@@ -60,6 +61,7 @@ public class CourseController {
             String credits  = ctx.queryParam("credits");
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
+            String term = ctx.queryParam("term");
 
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
@@ -79,6 +81,9 @@ public class CourseController {
                 search.addFilter(new TimeRangeFilter(from, to, null));
             }
 
+            if (term != null && !term.isBlank())
+                search.addFilter(new TermFilter(term));
+
             ctx.contentType("application/json");
             ctx.result(gson.toJson(search.getResults()));
         });
@@ -95,11 +100,12 @@ public class CourseController {
         });
 
         // POST /schedule/{dept}/{courseID}/{sectionID} — add a section by identity
-        app.post("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+        app.post("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
                     ctx.pathParam("courseID"),
-                    ctx.pathParam("sectionID")
+                    ctx.pathParam("sectionID"),
+                    ctx.pathParam("term")
             );
 
             if (section == null) {
@@ -116,11 +122,12 @@ public class CourseController {
         });
 
         // DELETE /schedule/{dept}/{courseID}/{sectionID} — remove a section by identity
-        app.delete("/schedule/{dept}/{courseID}/{sectionID}", ctx -> {
+        app.delete("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
                     ctx.pathParam("courseID"),
-                    ctx.pathParam("sectionID")
+                    ctx.pathParam("sectionID"),
+                    ctx.pathParam("term")
             );
 
             if (section == null) {
