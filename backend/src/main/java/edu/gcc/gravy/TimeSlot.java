@@ -69,14 +69,6 @@ public class TimeSlot {
         return (int) Duration.between(startTime, endTime).toMinutes();
     }
 
-//    public boolean sharesDay(TimeSlot other) { // Used in overlaps to check one
-//        for (Day day: days) {
-//            if (other.days.contains(day)) return true;
-//        }
-//
-//        return false;
-//    }
-
     public boolean sharesDay(Set<Day> other) { // Used in TimeRangeFilter to check a set of Days
         for (Day day: days) {
             if (other.contains(day)) return true;
