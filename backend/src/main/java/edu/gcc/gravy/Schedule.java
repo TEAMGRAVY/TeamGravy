@@ -41,6 +41,8 @@ public class Schedule implements Serializable{
             }
         }
 
+        // Next Sprint: disallow adding the same course code twice
+
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
             // Scan through alternate sections for ones that are open.
