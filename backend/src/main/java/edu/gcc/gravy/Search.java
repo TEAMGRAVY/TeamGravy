@@ -27,7 +27,7 @@ public class Search {
     private List<Filter> activeFilters;
 
     // Both of these make up a Query.
-    // codeQuery    — matched against getCourseCode() e.g. "CS 214 A"
+    // codeQuery    — matched against getCourseCode() e.g. "COMP 220 A"
     // keywordQuery — matched against the course title  e.g. "Data Structures"
     // Either can be null/empty, which acts as a wildcard and matches every section.
     private final String codeQuery;
@@ -38,12 +38,12 @@ public class Search {
      *
      * allSections starts empty here — the caller must immediately follow up with
      * setAllSections() to inject Main.allSections, which triggers runBaseSearch()
-     * again with real data. The TODO below notes that fetching allSections internally
-     * is a possible future improvement.
+     * again with real data.
      *
      * @param codeQuery    partial/full course code to match (case-insensitive), or null
      * @param keywordQuery partial/full course title keyword to match (case-insensitive), or null
      */
+
     public Search(String codeQuery, String keywordQuery) {
         this.codeQuery = codeQuery;
         this.keywordQuery = keywordQuery;
@@ -53,7 +53,7 @@ public class Search {
         // potentially implement going to library and finding "allSections" here
 
         // allSections is empty until setAllSections() is called, so currentResults
-        // will also be empty — it gets rebuilt once real data is injected below.
+        // will also be empty - it gets rebuilt once real data is injected below.
         this.allSections = new ArrayList<>();
         this.currentResults = runBaseSearch();
 
@@ -94,7 +94,7 @@ public class Search {
     public List<Section> removeFilter(FilterType type) {
         activeFilters.removeIf(f -> f.getType() == type); // Drop every filter matching this type
 
-        // Must replay from the full master list — currentResults may be missing sections
+        // Must replay from the full master list - currentResults may be missing sections
         // that the removed filter had excluded.
         List<Section> results = allSections;
 
@@ -165,13 +165,13 @@ public class Search {
 
         // If codeQuery is null, treat it as "" so we can safely call .isEmpty() on it later.
         // If it is not null, lowercase it and strip leading/trailing whitespace so that
-        // "CS 214" and "cs 214 " both behave identically when compared.
+        // "COMP 220" and "comp 220 " both behave identically when compared.
         String codeQ = codeQuery == null ? "" : codeQuery.toLowerCase().trim();
 
         // Same treatment for keywordQuery — null becomes "", otherwise lowercase and trim.
         String keyQ = keywordQuery == null ? "" : keywordQuery.toLowerCase().trim();
 
-        // Walk every section in the master list one at a time
+        // Loop through all sections in the master list one at a time
         for (Section s : allSections) {
 
             // Get this section's course code (e.g. "COMP 220 A") and lowercase it for comparison.
