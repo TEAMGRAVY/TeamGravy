@@ -1,9 +1,10 @@
 package edu.gcc.gravy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Student {
+public class Student implements Serializable {
     private int studentId;
     private String major;
     private String minor;

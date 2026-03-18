@@ -48,6 +48,7 @@ export default function App() {
 
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
+  const [scheduleName, setScheduleName] = useState("My Schedule");
 
   useEffect(() => {
     fetch("/courses")
@@ -95,6 +96,26 @@ export default function App() {
     setSchedule(data);
   }
 
+  async function loadSavedSchedule(scheduleName){
+    const res = await fetch(`/schedule/load/${scheduleName}`, { method: "POST" });
+    loadSchedule();
+  }
+
+  async function saveSchedule(scheduleName){
+    const res = await fetch(`/schedule/save/${scheduleName}`, { method: "POST" });
+    if (res.ok){
+      setSchedMsg("Saved Successfully");
+    } else {
+      const data = await res.json();
+      setSchedMsg(data.error);
+    }
+  }
+
+  async function newSchedule(){
+    const res = await fetch(`/schedule/new`, { method: "POST"});
+    loadSchedule();
+  }
+
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
@@ -120,10 +141,20 @@ export default function App() {
     <div>
 
       <nav style={{ marginBottom: "20px" }}>
-        <Link to="/">Search</Link>
+        <Link to="/" onClick={() => loadSchedule()}>Search</Link>
         {" | "}
-        <Link to="/calendar">Calendar</Link>
+        <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
+        
       </nav>
+      
+      <label> Schedule Name:{" "}
+        <input value={scheduleName} onChange={e => setScheduleName(e.target.value)} />
+        {" "}<button onClick={() => saveSchedule(scheduleName)}>Save</button>
+        {" "}<button onClick={() => loadSavedSchedule(scheduleName)}>Load</button>
+        {" "}<button onClick={() => newSchedule()}>New</button>
+      </label>
+      <br /><br />
+
 
       <Routes>
         <Route

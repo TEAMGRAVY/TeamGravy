@@ -13,7 +13,7 @@ import com.google.gson.JsonSerializer;
 
 public class CourseController {
 
-    private static final Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
+    private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
                     (src, type, context) -> new JsonPrimitive(src.toString()))
@@ -29,6 +29,16 @@ public class CourseController {
             }
         }
         return null;
+    }
+
+    private static Schedule loadSavedSchedule(String scheduleName){
+        ScheduleFileManager manager = ScheduleFileManager.getInstance();
+        return manager.LoadSchedule(scheduleName, null, Main.allSections);
+    }
+
+    private static boolean saveSchedule(String scheduleName){
+        ScheduleFileManager manager = ScheduleFileManager.getInstance();
+        return manager.SaveSchedule(scheduleName, schedule);
     }
 
     public static void registerRoutes(Javalin app) {
@@ -124,6 +134,37 @@ public class CourseController {
             } else {
                 ctx.status(404).json(Map.of("error", "Section not in schedule"));
             }
+        });
+
+        // POST /schedule/load/{scheduleName} - Load a schedule.
+        app.post("/schedule/load/{scheduleName}", ctx -> {
+            Schedule tempSchedule = loadSavedSchedule(
+                    ctx.pathParam("scheduleName")
+            );
+            if (tempSchedule == null){
+                ctx.status(404).json(Map.of("error", "Schedule not found"));
+                return;
+            }
+            schedule = tempSchedule;
+            ctx.status(204).json(Map.of("success", true));
+        });
+
+        // POST /schedule/save/{scheduleName} - Save the schedule.
+        app.post("/schedule/save/{scheduleName}", ctx -> {
+            boolean saveSuccess = saveSchedule(
+                    ctx.pathParam("scheduleName")
+            );
+            if (!saveSuccess){
+                ctx.status(404).json(Map.of("error", "Schedule not saved"));
+                return;
+            }
+            ctx.status(204).json(Map.of("success", true));
+        });
+
+        app.post("/schedule/new", ctx -> {
+            schedule = new Schedule(null,
+                    "New Schedule",
+                    "2026_Spring");
         });
     }
 }
