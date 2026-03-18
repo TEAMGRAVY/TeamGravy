@@ -44,6 +44,24 @@ public class JSONSection {
                     });
         }
 
+        public time(TimeSlot t){
+            this.end_time = t.getEndTime().toString();
+            this.start_time = t.getStartTime().toString();
+            Day d = t.getDays().stream().iterator().next();
+            this.day = switch (d) {
+                case MONDAY:
+                    yield "M";
+                case TUESDAY:
+                    yield "T";
+                case WEDNESDAY:
+                    yield "W";
+                case THURSDAY:
+                    yield "R";
+                case FRIDAY:
+                    yield "F";
+            };
+        }
+
     }
 
     public Section toSection(ArrayList<Course> allCourses){
@@ -72,4 +90,26 @@ public class JSONSection {
         return new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
                 timeSlots, is_open, location);
     }
+
+    public JSONSection(Section section1) {
+        Course course = section1.getCourse();
+        this.credits = course.getCreditHours();
+        this.faculty = section1.getProfessors().toArray(new String[0]);
+        this.is_lab = false; // Placeholder
+        this.is_open = section1.isOpen();
+        this.location = section1.getLocation();
+        this.name = course.getTitle();
+        this.number = course.getCourseID();
+        this.open_seats = section1.getCapacity()-section1.getEnrolled();
+        this.section = String.valueOf(section1.getSectionID());
+        this.semester = course.getTerm();
+        this.subject = course.getDepartment();
+        this.times = new ArrayList<>();
+        for (TimeSlot slot : section1.getTime()) {
+            this.times.add(new time(slot));
+        }
+        this.total_seats = section1.getCapacity();
+    }
+
+
 }

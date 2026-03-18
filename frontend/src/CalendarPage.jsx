@@ -8,6 +8,10 @@ const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
 };
 
+function scheduleUrl(s) {
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
+}
+
 useEffect(() => {
     loadSchedule();
 })

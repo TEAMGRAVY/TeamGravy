@@ -3,6 +3,7 @@ package edu.gcc.gravy;
 import java.util.ArrayList;
 import java.util.Objects;
 
+
 public class Section {
     private Course course;
     private char sectionID;
