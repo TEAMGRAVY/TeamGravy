@@ -24,7 +24,6 @@ public class Schedule {
     }
 
     public boolean addSection(Section section) { // Implement prereq/coreq error as additional requirements later - Uses student.getCompletedCourses() & section.getCourse().getPreReqs()/getCoReqs()
-
         ArrayList<Section> alternates = (ArrayList<Section>) section.getCourse().getSections();
         if (alternates == null){
             alternates = new ArrayList<>();
@@ -33,6 +32,13 @@ public class Schedule {
         }
 
         errorMessage = null;
+        System.out.println("isOpen: " + section.isOpen() + " isFull: " + section.isFull() + " code: " + section.getCourseCode());
+        for (Section other : sections) {
+            if (section.equals(other)) {
+                errorMessage = "Section " + section.getCourseCode() + " is already in your schedule.";
+                return false;
+            }
+        }
 
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
