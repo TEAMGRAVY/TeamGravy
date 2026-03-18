@@ -126,7 +126,7 @@ public class Schedule implements Serializable{
     }
 
     public boolean addActivity(Activity activity) {
-        errorMessage = null;
+        errorMessage = null; // Reset error message
 
         for (Section other : sections) { // Scan for either error
             if (other.hasTimeConflict(activity)) {
@@ -137,6 +137,7 @@ public class Schedule implements Serializable{
                     alternates.remove(other);
                 }
                 errorMessage = "Activity " + activity.getName() + " conflicts with section " + other.getCourseCode();
+
                 // Scan for a section that does not interfere with schedule or activity.
                 for (Section alternate : alternates){
                     if (!alternate.hasTimeConflict(activity)){
@@ -185,7 +186,7 @@ public class Schedule implements Serializable{
             boolean[] rows = slot.getSlotNumbers(); // 27
             boolean[] cols = slot.getDayNumbers(); // 5
 
-            for (int r = 0; r < 27; r++) {
+            for (int r = 0; r < 27; r++) { // Search for conflicts first (previous method ensure no conflicts so this is an extra check used in testing)
                 for (int c = 0; c < 5; c++) {
                     if(rows[r] && cols[c] && calendar[r][c]) {
                         return false;
@@ -280,11 +281,11 @@ public class Schedule implements Serializable{
                 }
             }
 
-            // Sort by start time
+            // Sort slots by start time
             slots.sort(Comparator.comparing(TimeSlot::getStartTime)); // This line was an Intellij suggestion - This sorts by earliest time
 
-            // Compute breaks
-            for (int i = 1; i < slots.size(); i++) {
+            // Compute breaks using LocalTime operations
+            for (int i = 1; i < slots.size(); i++) { // Start at 1 to ignore days with 1 or fewer classes
                 LocalTime prevEnd = slots.get(i - 1).getEndTime();
                 LocalTime nextStart = slots.get(i).getStartTime();
 

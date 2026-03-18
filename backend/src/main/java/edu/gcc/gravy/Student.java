@@ -26,6 +26,8 @@ public class Student implements Serializable {
         schedules.add(schedule);
     }
 
+    // To be utilized in next sprint:
+
     public void removeSchedule(Schedule schedule) {
         schedules.remove(schedule);
     }

@@ -20,7 +20,6 @@ public class Course {
         this.department = department;
         this.creditHours = creditHours;
         this.term = term;
-        // May be more depending on the database
     }
 
     public int getCourseID() {
@@ -43,20 +42,19 @@ public class Course {
         return term;
     }
 
+    public List<Section> getSections() {
+        return sections;
+    }
+
+    // To be used for next sprint:
     public List<Course> getPreReqs() {
         return preReqs;
     }
 
-    public List<Course> getCoReqs() {
-        return coReqs;
-    }
+    public List<Course> getCoReqs() { return coReqs; }
 
     public String getYearStanding() {
         return yearStanding;
-    }
-
-    public List<Section> getSections() {
-        return sections;
     }
 
     public double getRating() {
