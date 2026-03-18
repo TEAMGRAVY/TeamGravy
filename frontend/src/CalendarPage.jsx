@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+// Imports from App not used as it would break the loading of page when tried. Issue for Sprint 2.
 
 export default function CalendarPage() {
   
@@ -9,7 +10,7 @@ const DAY_LABELS = {
 };
 
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
 useEffect(() => {
