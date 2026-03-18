@@ -19,7 +19,6 @@ public class Course {
         this.department = department;
         this.creditHours = creditHours;
         this.term = term;
-        // May be more depending on the database
     }
 
     public int getCourseID() {
