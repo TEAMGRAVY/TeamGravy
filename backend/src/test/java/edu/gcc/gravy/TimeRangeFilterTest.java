@@ -216,7 +216,7 @@ class TimeRangeFilterTest {
     }
 
     @Test
-    void includes_if_shares_any_requested_day() {
+    void excludes_if_missing_any_requested_day() {  // New test to relfect updated "and" logic for days
         Section mondayOnly = section(
                 cs112(),
                 'A',
@@ -228,6 +228,23 @@ class TimeRangeFilterTest {
                         Set.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY));
 
         List<Section> result = filter.apply(List.of(mondayOnly));
+
+        assertTrue(result.isEmpty());  // Monday-only section does NOT have Wed and Fri
+    }
+
+    @Test
+    void includes_if_has_all_requested_days() { // Covers "positive and" case
+        Section mwf = section(
+                cs112(),
+                'A',
+                new ArrayList<>(List.of(slot(10, 0, 11, 0, Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)))
+        );
+
+        TimeRangeFilter filter =
+                new TimeRangeFilter(LocalTime.of(10, 0), null,
+                        Set.of(Day.MONDAY, Day.WEDNESDAY));  // section has more days than selected, still passes
+
+        List<Section> result = filter.apply(List.of(mwf));
 
         assertEquals(1, result.size());
     }
