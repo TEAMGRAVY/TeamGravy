@@ -1,9 +1,10 @@
 package edu.gcc.gravy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Student {
+public class Student implements Serializable {
     private int studentId;
     private String major;
     private String minor;
@@ -24,6 +25,8 @@ public class Student {
         Schedule schedule = new Schedule(this, name, term);
         schedules.add(schedule);
     }
+
+    // To be utilized in next sprint:
 
     public void removeSchedule(Schedule schedule) {
         schedules.remove(schedule);

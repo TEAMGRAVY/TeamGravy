@@ -4,5 +4,6 @@ public enum FilterType {
     PROFESSOR,
     CREDITHOUR,
     DEPARTMENT,
-    TIMERANGE
+    TIMERANGE,
+    TERM
 }

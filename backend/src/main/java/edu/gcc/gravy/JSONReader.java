@@ -16,7 +16,7 @@ public class JSONReader {
     public ArrayList<Course> allCourses = new ArrayList<>();
 
     public ArrayList<Section> readJSON() {
-        String jsonPath = "backend\\data_wolfe.json";
+        String jsonPath = "data_wolfe.json";
         try (InputStream inputStream = Files.newInputStream(Path.of(jsonPath).toAbsolutePath());
              JsonReader reader = new JsonReader(new InputStreamReader(inputStream))
         ) {
@@ -35,19 +35,19 @@ public class JSONReader {
 
 
             // Iterate and print the objects
-            for (Section section : sections) {
-                System.out.println(section.getCourse().getTitle());
-                System.out.print(section.getCourse().getDepartment() + " " + section.getCourse().getCourseID());
-                System.out.println(section.getSectionID());
-                System.out.println();
-            }
+//            for (Section section : sections) {
+//                System.out.println(section.getCourse().getTitle());
+//                System.out.print(section.getCourse().getDepartment() + " " + section.getCourse().getCourseID());
+//                System.out.println(section.getSectionID());
+//                System.out.println();
+//            }
 
-            for (Course curr : allCourses){
-                System.out.println(curr.getTitle());
-            }
+//            for (Course curr : allCourses){
+//                System.out.println(curr.getTitle());
+//            }
 
-            System.out.println(sections.size());
-            System.out.println(allCourses.size());
+//            System.out.println(sections.size());
+//            System.out.println(allCourses.size());
 
             return sections;
 
