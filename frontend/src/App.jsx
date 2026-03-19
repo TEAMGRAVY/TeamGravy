@@ -158,9 +158,9 @@ export default function App() {
         <Link to="/" onClick={() => loadSchedule()}>Search</Link>
         {" | "}
         <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
-        
+
       </nav>
-      
+
       <label> Schedule Name:{" "}
         <input value={scheduleName} onChange={e => setScheduleName(e.target.value)} />
         {" "}<button onClick={() => saveSchedule(scheduleName)}>Save</button>
