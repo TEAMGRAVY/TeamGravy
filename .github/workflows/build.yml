@@ -1,3 +1,5 @@
+# Creates new ruleset for Github that forces ./gradlew build to pass before a PR can be merged into master
+
 name: Build
 
 on:

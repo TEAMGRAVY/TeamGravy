@@ -64,9 +64,9 @@ async function removeFromSchedule(s) {
     setSchedMsg("");
     loadSchedule();
   }
-  
 
-  
+
+
   const START_DAY = 8 * 60;   // 8:00 AM
   const END_DAY   = 21.5 * 60;  // 9:30 PM
   const BLOCK = 30;
@@ -116,10 +116,10 @@ async function removeFromSchedule(s) {
   for (let t = START_DAY; t < END_DAY; t += BLOCK) {
     timeBlocks.push(t);
   }
-    
+
     return (
     <div>
-      <h1>Calendar Page</h1>
+      <h1 style={{ color: "white" }}>Calendar Page</h1>
       <h2>Schedule</h2>
       <p>Total credits: {schedule.totalCredits}</p>
       <p>Days without class: {schedule.daysWithoutClass}</p>
@@ -136,7 +136,7 @@ async function removeFromSchedule(s) {
         ))}
       </ul>
       <hr />
-      <h2>Weekly Schedule Grid</h2>
+      <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
 
       <table style={{
         margin: "auto",
