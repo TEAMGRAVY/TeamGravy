@@ -167,7 +167,7 @@ public class CourseController {
             }
         });
 
-        // POST /schedule/load/{scheduleName} - Load a schedule.
+        // POST /schedule/load/{scheduleName} - Load a previously saved schedule.
         app.post("/schedule/load/{scheduleName}", ctx -> {
             Schedule tempSchedule = loadSavedSchedule(
                     ctx.pathParam("scheduleName")
@@ -192,6 +192,7 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
+        // POST /schedule/new - Creates a new empty schedule object.
         app.post("/schedule/new", ctx -> {
             schedule = new Schedule(null,
                     "New Schedule",
