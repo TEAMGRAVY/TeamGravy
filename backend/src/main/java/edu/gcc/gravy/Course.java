@@ -1,5 +1,6 @@
 package edu.gcc.gravy;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Course {
@@ -20,6 +21,7 @@ public class Course {
         this.department = department;
         this.creditHours = creditHours;
         this.term = term;
+        sections = new ArrayList<>();
     }
 
     public int getCourseID() {

@@ -7,6 +7,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Manages saved schedule files in place of a database.
+ */
 public class ScheduleFileManager {
 
     private static ScheduleFileManager manager = null;
@@ -20,6 +23,8 @@ public class ScheduleFileManager {
         return manager;
     }
 
+    // Saves the schedule object by converting it to a smaller format
+    // and then writing it to a json file
     public boolean SaveSchedule(String fileName, Schedule object){
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -36,13 +41,17 @@ public class ScheduleFileManager {
     public Schedule LoadSchedule(String fileName, Student student, ArrayList<Section> allSections){
         Gson gson = new Gson();
         try (FileReader reader = new FileReader(fileName)){
-            return gson.fromJson(reader, ScheduleFileFormat.class).toSchedule(student, allSections);
+            return gson.fromJson(reader, ScheduleFileFormat.class)
+                    .toSchedule(student, allSections);
         } catch (IOException e){
             e.printStackTrace();
         }
         return null;
     }
 
+    /**
+     * Format used to save schedules to json files.
+     */
     public static class ScheduleFileFormat{
         public String name;
         public String term;
@@ -59,6 +68,12 @@ public class ScheduleFileManager {
             //activities = schedule.getScheduleActivities();
         }
 
+        /**
+         * Builds the schedule object from the saved sections in the formatting.
+         * @param student - student object for future features.
+         * @param allSections - ArrayList that contains all pre-existing sections
+         * @return A schedule object with all saved sections.
+         */
         public Schedule toSchedule(Student student, ArrayList<Section> allSections){
             Schedule schedule = new Schedule(student, this.name, this.term);
             for (ShortenedSection section : sections){
@@ -70,6 +85,9 @@ public class ScheduleFileManager {
             return schedule;
         }
 
+        /**
+         * Limited section information into the most basic details to store in compact json files.
+         */
         public static class ShortenedSection{
             public String name;
             public String term;
@@ -85,6 +103,7 @@ public class ScheduleFileManager {
                 this.sectionID = section.getSectionID();
             }
 
+            // Finds the Section from allSections to reference pre-existing instances.
             public Section toSection(ArrayList<Section> allSections){
                 for (Section section : allSections){
                     if (

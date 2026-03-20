@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 // Imports from App not used as it would break the loading of page when tried. Issue for Sprint 2.
 
+// Page for calendar view of schedule
 export default function CalendarPage() {
   
 const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
@@ -69,8 +70,9 @@ async function removeFromSchedule(s) {
   
   const START_DAY = 8 * 60;   // 8:00 AM
   const END_DAY   = 21.5 * 60;  // 9:30 PM
-  const BLOCK = 30;
+  const BLOCK = 30; // 30 Minute Blocks
 
+  // Builds the grid for the calendar view
   function buildGrid() {
 
     const grid = {};
@@ -87,6 +89,7 @@ async function removeFromSchedule(s) {
         const start = timeToMinutes(slot.startTime);
         const end   = timeToMinutes(slot.endTime);
 
+        // How many blocks does the class span?
         const span = Math.ceil((end - start) / BLOCK);
 
         slot.days.forEach(day => {
@@ -182,7 +185,7 @@ async function removeFromSchedule(s) {
                 }
 
                 if (cell) {
-                  if (cell.label){
+                  if (cell.label){ // Color the cell if filled.
                     cell.color = "#a81b1b"
                   }
                   return (

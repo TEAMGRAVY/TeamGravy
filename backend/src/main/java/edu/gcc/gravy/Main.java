@@ -6,6 +6,7 @@ import io.javalin.Javalin;
 public class Main {
     public static ArrayList<Section> allSections;
     public static void main(String[] args) {
+        run();
     }
 
     public static void run() {
