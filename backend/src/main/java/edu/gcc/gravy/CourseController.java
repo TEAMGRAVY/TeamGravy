@@ -13,9 +13,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+import java.time.format.DateTimeFormatter;
 
 public class CourseController {
 
+    // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
@@ -49,12 +51,15 @@ public class CourseController {
 
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
 
+        // Returns the raw JSON from data_wolfe.json
+        // Used by the frontend to populate filter dropdowns
         app.get("/courses", ctx -> {
             String json = Files.readString(Path.of("data_wolfe.json").toAbsolutePath());
             ctx.contentType("application/json");
             ctx.result(json);
         });
 
+        // Main search endpoint, all filtering happens server-side
         //   code, keyword, dept, prof, credits, timeFrom, timeTo
         app.get("/search", ctx -> {
             String code     = ctx.queryParam("code");
@@ -66,6 +71,7 @@ public class CourseController {
             String timeTo   = ctx.queryParam("timeTo");
             String term = ctx.queryParam("term");
 
+            // Start with a base search on code + keyword, then layer on filters
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
 
@@ -78,6 +84,7 @@ public class CourseController {
             if (credits != null && !credits.isBlank())
                 search.addFilter(new CreditHourFilter(Integer.parseInt(credits)));
 
+            // Converted to the Day enum set expected by TimeRangeFilter
             String daysParam = ctx.queryParam("days");
             Set<Day> daySet = null;
             if (daysParam != null && !daysParam.isBlank()) {
@@ -89,8 +96,8 @@ public class CourseController {
             if ((timeFrom != null && !timeFrom.isBlank())
                     || (timeTo != null && !timeTo.isBlank())
                     || daySet != null) {
-                LocalTime from = (timeFrom != null && !timeFrom.isBlank()) ? LocalTime.parse(timeFrom) : null;
-                LocalTime to   = (timeTo   != null && !timeTo.isBlank())   ? LocalTime.parse(timeTo)   : null;
+                LocalTime from = (timeFrom != null && !timeFrom.isBlank()) ? LocalTime.parse(timeFrom, DateTimeFormatter.ofPattern("h:mm a")) : null;
+                LocalTime to   = (timeTo   != null && !timeTo.isBlank())   ? LocalTime.parse(timeTo, DateTimeFormatter.ofPattern("h:mm a"))   : null;
                 search.addFilter(new TimeRangeFilter(from, to, daySet));
             }
 
@@ -101,6 +108,7 @@ public class CourseController {
             ctx.result(gson.toJson(search.getResults()));
         });
 
+        // Returns the current schedule
         // GET /schedule — return current sections + metrics
         app.get("/schedule", ctx -> {
             ctx.contentType("application/json");
@@ -112,7 +120,9 @@ public class CourseController {
             )));
         });
 
+        // Adds a section to the schedule
         // POST /schedule/{dept}/{courseID}/{sectionID} — add a section by identity
+        // Returns 409 with an error message if the add is rejected
         app.post("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
@@ -134,6 +144,7 @@ public class CourseController {
             }
         });
 
+        // Removes a section from the schedule
         // DELETE /schedule/{dept}/{courseID}/{sectionID} — remove a section by identity
         app.delete("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
