@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Used to operate as an intermediary class for json conversion.
+ */
 public class JSONSection {
     public int credits;
     public String[] faculty;
@@ -64,6 +67,12 @@ public class JSONSection {
 
     }
 
+
+    /**
+     *
+     * @param allCourses - An arraylist that has all
+     * @return a section
+     */
     public Section toSection(ArrayList<Course> allCourses){
         ArrayList<TimeSlot> timeSlots = new ArrayList<>();
         for (int index = 0; index < times.size(); index++){
@@ -72,6 +81,7 @@ public class JSONSection {
 
         Course course = new Course(number, name, subject, credits, semester);
         boolean courseExists = false;
+        // If course is equivalent to a pre-existing course, use the pre-existing course
         for (Course current : allCourses){
             if (course.getTitle().equals(current.getTitle())){
                 if (course.getCourseID() == current.getCourseID()
@@ -87,8 +97,11 @@ public class JSONSection {
         if (!courseExists){
             allCourses.add(course);
         }
-        return new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
+        Section newSect = new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
                 timeSlots, is_open, location);
+
+        course.getSections().add(newSect);
+        return newSect;
     }
 
     public JSONSection(Section section1) {

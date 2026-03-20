@@ -25,6 +25,7 @@ public class JSONReader {
 
             ArrayList<Section> sections = new ArrayList<>();
 
+            // Read json into intermediary class and convert to Section class.
             reader.beginArray();
 
             while (reader.hasNext()) {

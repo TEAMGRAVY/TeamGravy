@@ -6,6 +6,10 @@ import io.javalin.Javalin;
 public class Main {
     public static ArrayList<Section> allSections;
     public static void main(String[] args) {
+    }
+
+    public static void run() {
+        // Read in JSON file to store all sections.
         allSections = (new JSONReader()).readJSON();
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("public");
@@ -17,13 +21,5 @@ public class Main {
             });
         }).start(7000);
         CourseController.registerRoutes(app);
-    }
-
-    public static void run() {
-        // Load data - initial reading of the csv or JSON file or database
-        // Create Search object
-        // Get all user I/O
-        // Apply filters
-        // Display results
     }
 }
