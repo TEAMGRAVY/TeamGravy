@@ -76,8 +76,8 @@ public class CourseController {
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
 
-            if (isOpenParam != null && !isOpenParam.isBlank())
-                search.addFilter(new OpenFilter(Boolean.parseBoolean(isOpenParam)));
+            if (isOpenParam != null && isOpenParam.equals("true"))
+                search.addFilter(new OpenFilter(true));
 
             if (dept != null && !dept.isBlank())
                 search.addFilter(new DepartmentFilter(dept));

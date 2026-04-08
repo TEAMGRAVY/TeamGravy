@@ -242,10 +242,12 @@ export default function App() {
                 ))}
               </div>
               <hr className="filter-divider" />
+              <div className="day-checks">
               <label>
                 <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
                 Open
               </label>
+              </div>
               <button className="btn-reset" onClick={reset}>Reset</button>
             </aside>
 
