@@ -242,6 +242,7 @@ export default function App() {
                 ))}
               </div>
               <hr className="filter-divider" />
+              <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Availability</div>
               <div className="day-checks">
               <label>
                 <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
