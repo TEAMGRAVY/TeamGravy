@@ -2,6 +2,7 @@ package edu.gcc.gravy;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Course {
     private int courseID;
@@ -63,4 +64,22 @@ public class Course {
         return rating;
     }
 
+    @Override
+    public String toString() {
+        return department + " " + courseID;
+    }
+
+    @Override
+    public boolean equals(Object o) { // Override so schedule can check if courses are equal based on department and id
+        if (this == o) return true;
+        if (!(o instanceof Course)) return false;
+        Course other = (Course) o;
+        return this.courseID == other.courseID &&
+                this.department.equals(other.department);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(courseID, department);
+    }
 }
