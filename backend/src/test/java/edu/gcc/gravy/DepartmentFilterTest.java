@@ -11,11 +11,12 @@ class DepartmentFilterTest {
     // Helper method to construct sections for testing.
     private Section makeSection(int id, String title, String department, char letter) {
 
-        Course course = new Course(id, title, department, 3, "Fall");
+        Course course = new Course(id, title, department, 3);
 
         Section section = new Section();
         section.setCourse(course);
         section.setSectionID(letter);
+        section.setTerm("Fall 2026");
 
         return section;
     }

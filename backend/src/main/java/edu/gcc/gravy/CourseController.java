@@ -25,7 +25,7 @@ public class CourseController {
             if (s.getCourse().getDepartment().equals(dept)
                     && String.valueOf(s.getCourse().getCourseID()).equals(courseID)
                     && String.valueOf(s.getSectionID()).equals(sectionID)
-                    && s.getCourse().getTerm().equals(term)) {
+                    && s.getTerm().equals(term)) {
                 return s;
             }
         }
