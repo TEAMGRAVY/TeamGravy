@@ -11,7 +11,7 @@ public class TimeRangeFilter extends Filter {
     private LocalTime latestTime;
     private Set<Day> days;
 
-    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) { // Are these times just based on the startTime of the section?
+    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) {
         super(FilterType.TIMERANGE);
         this.earliestTime = earliestTime;
         this.latestTime = latestTime;
@@ -32,8 +32,11 @@ public class TimeRangeFilter extends Filter {
 
             boolean matchesDay = (days == null) || sectionDays.containsAll(days); // If day filter is not set or the section contains all days in the filter
 
+            LocalTime startTime;
+            LocalTime endTime;
             for (TimeSlot slot : section.getTime()) {
-                LocalTime startTime = slot.getStartTime();
+                startTime = slot.getStartTime();
+                endTime = slot.getEndTime();
 
                 // Check earliestTime if set
                 if (earliestTime != null && startTime.isBefore(earliestTime)) {
@@ -42,7 +45,7 @@ public class TimeRangeFilter extends Filter {
                 }
 
                 // Check latestTime if set
-                if (latestTime != null && startTime.isAfter(latestTime)) {
+                if (latestTime != null && endTime.isAfter(latestTime)) {
                     matchesTime = false;
                     break;
                 }

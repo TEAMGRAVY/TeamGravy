@@ -98,7 +98,7 @@ class TimeRangeFilterTest {
         );
 
         TimeRangeFilter filter =
-                new TimeRangeFilter(null, LocalTime.of(12, 0), null);
+                new TimeRangeFilter(null, LocalTime.of(15, 0), null);
 
         List<Section> result =
                 filter.apply(List.of(morning, afternoon));
