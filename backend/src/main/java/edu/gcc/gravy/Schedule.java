@@ -33,15 +33,16 @@ public class Schedule implements Serializable{
         }
 
         errorMessage = null;
-        System.out.println("isOpen: " + section.isOpen() + " isFull: " + section.isFull() + " code: " + section.getCourseCode());
-        for (Section other : sections) {
+
+        for (Section other : sections) { // Prevents adding the exact same course section twice
             if (section.equals(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " is already in your schedule.";
                 return false;
+            } else if (section.getCourse().equals(other.getCourse())) { // Prevents adding the exact same course twice
+                errorMessage = "Course " + section.getCourse() + " is already in your schedule.";
+                return false;
             }
         }
-
-        // Next Sprint: disallow adding the same course code twice
 
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";

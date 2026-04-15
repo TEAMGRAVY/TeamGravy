@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 // Imports from App not used as it would break the loading of page when tried. Issue for Sprint 2.
 
+// Page for calendar view of schedule
 export default function CalendarPage() {
   
 const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
@@ -64,13 +65,14 @@ async function removeFromSchedule(s) {
     setSchedMsg("");
     loadSchedule();
   }
-  
 
-  
+
+
   const START_DAY = 8 * 60;   // 8:00 AM
   const END_DAY   = 21.5 * 60;  // 9:30 PM
-  const BLOCK = 30;
+  const BLOCK = 30; // 30 Minute Blocks
 
+  // Builds the grid for the calendar view
   function buildGrid() {
 
     const grid = {};
@@ -87,6 +89,7 @@ async function removeFromSchedule(s) {
         const start = timeToMinutes(slot.startTime);
         const end   = timeToMinutes(slot.endTime);
 
+        // How many blocks does the class span?
         const span = Math.ceil((end - start) / BLOCK);
 
         slot.days.forEach(day => {
@@ -116,10 +119,10 @@ async function removeFromSchedule(s) {
   for (let t = START_DAY; t < END_DAY; t += BLOCK) {
     timeBlocks.push(t);
   }
-    
+
     return (
     <div>
-      <h1>Calendar Page</h1>
+      <h1 style={{ color: "white" }}>Calendar Page</h1>
       <h2>Schedule</h2>
       <p>Total credits: {schedule.totalCredits}</p>
       <p>Days without class: {schedule.daysWithoutClass}</p>
@@ -136,7 +139,7 @@ async function removeFromSchedule(s) {
         ))}
       </ul>
       <hr />
-      <h2>Weekly Schedule Grid</h2>
+      <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
 
       <table style={{
         margin: "auto",
@@ -182,7 +185,7 @@ async function removeFromSchedule(s) {
                 }
 
                 if (cell) {
-                  if (cell.label){
+                  if (cell.label){ // Color the cell if filled.
                     cell.color = "#a81b1b"
                   }
                   return (

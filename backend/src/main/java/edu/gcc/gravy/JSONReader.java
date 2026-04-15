@@ -10,7 +10,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 
-
+/**
+ * Object class for reading the data_wolfe.json file.
+ */
 public class JSONReader {
 
     public ArrayList<Course> allCourses = new ArrayList<>();
@@ -25,6 +27,7 @@ public class JSONReader {
 
             ArrayList<Section> sections = new ArrayList<>();
 
+            // Read json into intermediary class and convert to Section class.
             reader.beginArray();
 
             while (reader.hasNext()) {

@@ -2,6 +2,9 @@ package edu.gcc.gravy;
 
 import io.javalin.Javalin;
 import java.time.LocalTime;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.nio.file.Files;
@@ -10,9 +13,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+import java.time.format.DateTimeFormatter;
 
 public class CourseController {
 
+    // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
@@ -46,13 +51,16 @@ public class CourseController {
 
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
 
+        // Returns the raw JSON from data_wolfe.json
+        // Used by the frontend to populate filter dropdowns
         app.get("/courses", ctx -> {
             String json = Files.readString(Path.of("data_wolfe.json").toAbsolutePath());
             ctx.contentType("application/json");
             ctx.result(json);
         });
 
-        //   code, keyword, dept, prof, credits, timeFrom, timeTo
+        // Main search endpoint, all filtering happens server-side
+        //   code, keyword, dept, prof, credits, timeFrom, timeTo, term, isOpen
         app.get("/search", ctx -> {
             String code     = ctx.queryParam("code");
             String keyword  = ctx.queryParam("keyword");
@@ -62,9 +70,14 @@ public class CourseController {
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
             String term = ctx.queryParam("term");
+            String isOpenParam = ctx.queryParam("isOpen");
 
+            // Start with a base search on code + keyword, then layer on filters
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
+
+            if (isOpenParam != null && isOpenParam.equals("true"))
+                search.addFilter(new OpenFilter(true));
 
             if (dept != null && !dept.isBlank())
                 search.addFilter(new DepartmentFilter(dept));
@@ -75,10 +88,21 @@ public class CourseController {
             if (credits != null && !credits.isBlank())
                 search.addFilter(new CreditHourFilter(Integer.parseInt(credits)));
 
-            if ((timeFrom != null && !timeFrom.isBlank()) || (timeTo != null && !timeTo.isBlank())) {
-                LocalTime from = (timeFrom != null && !timeFrom.isBlank()) ? LocalTime.parse(timeFrom) : null;
-                LocalTime to   = (timeTo   != null && !timeTo.isBlank())   ? LocalTime.parse(timeTo)   : null;
-                search.addFilter(new TimeRangeFilter(from, to, null));
+            // Converted to the Day enum set expected by TimeRangeFilter
+            String daysParam = ctx.queryParam("days");
+            Set<Day> daySet = null;
+            if (daysParam != null && !daysParam.isBlank()) {
+                daySet = Arrays.stream(daysParam.split(","))
+                        .map(Day::valueOf)
+                        .collect(Collectors.toSet());
+            }
+
+            if ((timeFrom != null && !timeFrom.isBlank())
+                    || (timeTo != null && !timeTo.isBlank())
+                    || daySet != null) {
+                LocalTime from = (timeFrom != null && !timeFrom.isBlank()) ? LocalTime.parse(timeFrom, DateTimeFormatter.ofPattern("h:mm a")) : null;
+                LocalTime to   = (timeTo   != null && !timeTo.isBlank())   ? LocalTime.parse(timeTo, DateTimeFormatter.ofPattern("h:mm a"))   : null;
+                search.addFilter(new TimeRangeFilter(from, to, daySet));
             }
 
             if (term != null && !term.isBlank())
@@ -88,6 +112,7 @@ public class CourseController {
             ctx.result(gson.toJson(search.getResults()));
         });
 
+        // Returns the current schedule
         // GET /schedule — return current sections + metrics
         app.get("/schedule", ctx -> {
             ctx.contentType("application/json");
@@ -99,7 +124,9 @@ public class CourseController {
             )));
         });
 
+        // Adds a section to the schedule
         // POST /schedule/{dept}/{courseID}/{sectionID} — add a section by identity
+        // Returns 409 with an error message if the add is rejected
         app.post("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
                     ctx.pathParam("dept"),
@@ -121,6 +148,7 @@ public class CourseController {
             }
         });
 
+        // Removes a section from the schedule
         // DELETE /schedule/{dept}/{courseID}/{sectionID} — remove a section by identity
         app.delete("/schedule/{dept}/{courseID}/{sectionID}/{term}", ctx -> {
             Section section = findSection(
@@ -143,7 +171,7 @@ public class CourseController {
             }
         });
 
-        // POST /schedule/load/{scheduleName} - Load a schedule.
+        // POST /schedule/load/{scheduleName} - Load a previously saved schedule.
         app.post("/schedule/load/{scheduleName}", ctx -> {
             Schedule tempSchedule = loadSavedSchedule(
                     ctx.pathParam("scheduleName")
@@ -168,6 +196,7 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
+        // POST /schedule/new - Creates a new empty schedule object.
         app.post("/schedule/new", ctx -> {
             schedule = new Schedule(null,
                     "New Schedule",

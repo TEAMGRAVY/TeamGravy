@@ -5,5 +5,6 @@ public enum FilterType {
     CREDITHOUR,
     DEPARTMENT,
     TIMERANGE,
-    TERM
+    TERM,
+    OPEN
 }

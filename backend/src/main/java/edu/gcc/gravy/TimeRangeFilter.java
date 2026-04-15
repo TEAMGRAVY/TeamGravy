@@ -2,6 +2,7 @@ package edu.gcc.gravy;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -10,7 +11,7 @@ public class TimeRangeFilter extends Filter {
     private LocalTime latestTime;
     private Set<Day> days;
 
-    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) { // Are these times just based on the startTime of the section?
+    public TimeRangeFilter(LocalTime earliestTime, LocalTime latestTime, Set<Day> days) {
         super(FilterType.TIMERANGE);
         this.earliestTime = earliestTime;
         this.latestTime = latestTime;
@@ -23,15 +24,19 @@ public class TimeRangeFilter extends Filter {
 
         for (Section section : sections) {
             boolean matchesTime = true;
-            boolean matchesDay = (days == null);
 
+            Set<Day> sectionDays = new HashSet<>();
+            for (TimeSlot slot : section.getTime()) { // Get all the days this section is held on
+                sectionDays.addAll(slot.getDays());
+            }
+
+            boolean matchesDay = (days == null) || sectionDays.containsAll(days); // If day filter is not set or the section contains all days in the filter
+
+            LocalTime startTime;
+            LocalTime endTime;
             for (TimeSlot slot : section.getTime()) {
-                // Check if any days match
-                if (days != null && slot.sharesDay(days)) {
-                    matchesDay = true;
-                }
-
-                LocalTime startTime = slot.getStartTime();
+                startTime = slot.getStartTime();
+                endTime = slot.getEndTime();
 
                 // Check earliestTime if set
                 if (earliestTime != null && startTime.isBefore(earliestTime)) {
@@ -40,7 +45,7 @@ public class TimeRangeFilter extends Filter {
                 }
 
                 // Check latestTime if set
-                if (latestTime != null && startTime.isAfter(latestTime)) {
+                if (latestTime != null && endTime.isAfter(latestTime)) {
                     matchesTime = false;
                     break;
                 }

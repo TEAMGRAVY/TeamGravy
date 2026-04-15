@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Used to operate as an intermediary class for json conversion.
+ */
 public class JSONSection {
     public int credits;
     public String[] faculty;
@@ -20,12 +23,15 @@ public class JSONSection {
     public List<time> times;
     public int total_seats;
 
-
+    /**
+     * Object to store timeslots from json
+     */
     public class time {
         public String day;
         public String end_time;
         public String start_time;
 
+        // Make the JSON times into TimeSlots.
         public TimeSlot toTimeSlot(){
             return new TimeSlot(LocalTime.parse(start_time), LocalTime.parse(end_time),
                     switch (day) {
@@ -44,6 +50,7 @@ public class JSONSection {
                     });
         }
 
+        // make the time object from a TimeSlot
         public time(TimeSlot t){
             this.end_time = t.getEndTime().toString();
             this.start_time = t.getStartTime().toString();
@@ -64,6 +71,12 @@ public class JSONSection {
 
     }
 
+
+    /**
+     * Converts the JSONSection object to a Section
+     * @param allCourses - An arraylist that has all
+     * @return a section
+     */
     public Section toSection(ArrayList<Course> allCourses){
         ArrayList<TimeSlot> timeSlots = new ArrayList<>();
         for (int index = 0; index < times.size(); index++){
@@ -72,6 +85,7 @@ public class JSONSection {
 
         Course course = new Course(number, name, subject, credits);
         boolean courseExists = false;
+        // If course is equivalent to a pre-existing course, use the pre-existing course
         for (Course current : allCourses){
             if (course.getTitle().equals(current.getTitle())){
                 if (course.getCourseID() == current.getCourseID()
@@ -86,10 +100,18 @@ public class JSONSection {
         if (!courseExists){
             allCourses.add(course);
         }
-        return new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
-                timeSlots, is_open, location, "Fall_2026");
+        Section newSect = new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
+                timeSlots, is_open, location);
+
+        // Additional feature
+        // Add the section to the courses list of sections
+        // course.getSections().add(newSect);
+        // No idea why, but this line kills the program.
+
+        return newSect;
     }
 
+    // Reverse process to make a JSONSection from a section
     public JSONSection(Section section1) {
         Course course = section1.getCourse();
         this.credits = course.getCreditHours();
