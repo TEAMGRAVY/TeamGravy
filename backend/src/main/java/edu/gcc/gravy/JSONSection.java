@@ -70,13 +70,12 @@ public class JSONSection {
             timeSlots.add(times.get(index).toTimeSlot());
         }
 
-        Course course = new Course(number, name, subject, credits, semester);
+        Course course = new Course(number, name, subject, credits);
         boolean courseExists = false;
         for (Course current : allCourses){
             if (course.getTitle().equals(current.getTitle())){
                 if (course.getCourseID() == current.getCourseID()
                     && course.getDepartment().equals(current.getDepartment())
-                    && course.getTerm().equals(current.getTerm())
                     && course.getCreditHours() == current.getCreditHours()
                 ){
                     course = current;
@@ -88,7 +87,7 @@ public class JSONSection {
             allCourses.add(course);
         }
         return new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
-                timeSlots, is_open, location);
+                timeSlots, is_open, location, "Fall_2026");
     }
 
     public JSONSection(Section section1) {
@@ -102,7 +101,7 @@ public class JSONSection {
         this.number = course.getCourseID();
         this.open_seats = section1.getCapacity()-section1.getEnrolled();
         this.section = String.valueOf(section1.getSectionID());
-        this.semester = course.getTerm();
+        this.semester = section1.getTerm();
         this.subject = course.getDepartment();
         this.times = new ArrayList<>();
         for (TimeSlot slot : section1.getTime()) {

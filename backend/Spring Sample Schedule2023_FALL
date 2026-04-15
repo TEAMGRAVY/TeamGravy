@@ -4,14 +4,14 @@
   "sections": [
     {
       "name": "AUDITING",
-      "term": "2023_Fall",
+      "term": "Fall_2026",
       "dept": "ACCT",
       "courseId": 403,
       "sectionID": "A"
     },
     {
       "name": "LABORATORY",
-      "term": "2023_Fall",
+      "term": "Fall_2026",
       "dept": "BIOL",
       "courseId": 101,
       "sectionID": "P"
