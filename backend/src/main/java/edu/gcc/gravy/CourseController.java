@@ -60,7 +60,7 @@ public class CourseController {
         });
 
         // Main search endpoint, all filtering happens server-side
-        //   code, keyword, dept, prof, credits, timeFrom, timeTo
+        //   code, keyword, dept, prof, credits, timeFrom, timeTo, term, isOpen
         app.get("/search", ctx -> {
             String code     = ctx.queryParam("code");
             String keyword  = ctx.queryParam("keyword");
@@ -70,10 +70,15 @@ public class CourseController {
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
             String term     = ctx.queryParam("term");
+            String term = ctx.queryParam("term");
+            String isOpenParam = ctx.queryParam("isOpen");
 
             // Start with a base search on code + keyword, then layer on filters
             Search search = new Search(code, keyword);
             search.setAllSections(Main.allSections);
+
+            if (isOpenParam != null && isOpenParam.equals("true"))
+                search.addFilter(new OpenFilter(true));
 
             if (dept != null && !dept.isBlank())
                 search.addFilter(new DepartmentFilter(dept));

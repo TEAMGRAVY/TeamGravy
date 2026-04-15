@@ -52,6 +52,7 @@ export default function App() {
   const [timeTo,   setTimeTo]   = useState("");
   const [term,     setTerm]     = useState("");
   const [days,     setDays]     = useState([]);
+  const [isOpen,   setIsOpen]   = useState(false);
 
     // Search results returned from /search
   const [results,  setResults]  = useState([]);
@@ -85,7 +86,7 @@ export default function App() {
 // Search — fires 300ms after the user stops changing any filter
 // If nothing is filled in, clears results instead of searching
   useEffect(() => {
-    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length;
+    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length || isOpen;
     if (!hasInput) { setResults([]); setSearched(false); return; }
 
     const timer = setTimeout(async () => {
@@ -99,6 +100,7 @@ export default function App() {
       if (timeTo)      params.set("timeTo",   timeTo);
       if (term)        params.set("term",     term);
       if (days.length) params.set("days",     days.join(","));
+      if (isOpen)      params.set("isOpen",   "true");
 
       const res  = await fetch(`/search?${params}`);
       const data = await res.json();
@@ -108,13 +110,14 @@ export default function App() {
 
     // Cancel the previous timer if the user types again before 300ms
     return () => clearTimeout(timer);
-  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days]);
+  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days, isOpen]);
 
 // Clears all filters and results
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
     setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
     setDays([]);
+    setIsOpen(false);
     setResults([]); setSearched(false);
   }
 
@@ -237,6 +240,14 @@ export default function App() {
                     {label}
                   </label>
                 ))}
+              </div>
+              <hr className="filter-divider" />
+              <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Availability</div>
+              <div className="day-checks">
+              <label>
+                <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
+                Open
+              </label>
               </div>
               <button className="btn-reset" onClick={reset}>Reset</button>
             </aside>

@@ -27,10 +27,12 @@ class ScheduleTest {
         );
     }
 
+    private int courseCounter = 100; // So each test section is not considered the same course
+
     private Section createTestSection(String courseCode, int credits, Day day,
                                       int startHour, int startMin, int endHour, int endMin) {
         // Create a simple Course for testing
-        Course course = new Course(1000, courseCode, "CS", credits, "Fall");
+        Course course = new Course(courseCounter++, courseCode, "CS", credits, "Fall");
 
         // Create TimeSlot
         TimeSlot timeSlot = new TimeSlot(
@@ -461,8 +463,9 @@ class ScheduleTest {
     @Test
     void getDaysWithoutClass_oneDayWithClass_returns4() {
         Schedule schedule = schedule();
+        int id = 100;
 
-        Section s = section(course(112, 3), 'A',
+        Section s = section(course(id++, 3), 'A',
                 slot(9, 0, 10, 0, Day.MONDAY));
 
         schedule.addSection(s);
@@ -489,9 +492,10 @@ class ScheduleTest {
     @Test
     void getDaysWithoutClass_allDaysHaveClass_returns0() {
         Schedule schedule = schedule();
+        int id = 100;
 
         for (Day day : Day.values()) {
-            Section s = section(course(112, 3), 'A',
+            Section s = section(course(id++, 3), 'A',
                     slot(9, 0, 10, 0, day));
             schedule.addSection(s);
         }
@@ -851,5 +855,131 @@ class ScheduleTest {
                 }
             }
         }
+    }
+
+    // ---------- DUPLICATE SECTION / COURSE TESTS ----------
+
+    @Test
+    void addSection_duplicateSection_fails() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        assertTrue(schedule.addSection(s));
+        assertFalse(schedule.addSection(s));
+    }
+
+    @Test
+    void addSection_duplicateSection_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+        schedule.addSection(s);
+
+        assertTrue(schedule.getErrorMessage().contains("already in your schedule"));
+    }
+
+    @Test
+    void addSection_duplicateSection_doesNotAddTwice() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+        schedule.addSection(s);
+
+        assertEquals(1, schedule.getScheduleSections().size());
+    }
+
+    @Test
+    void addSection_sameCourseAlternateSection_fails() {
+        Schedule schedule = schedule();
+
+        Course shared = course(112, 3);
+
+        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
+        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
+
+        assertTrue(schedule.addSection(sA));
+        assertFalse(schedule.addSection(sB));
+    }
+
+    @Test
+    void addSection_sameCourseAlternateSection_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Course shared = course(112, 3);
+
+        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
+        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
+
+        schedule.addSection(sA);
+        schedule.addSection(sB);
+
+        assertTrue(schedule.getErrorMessage().contains("already in your schedule"));
+    }
+
+    @Test
+    void addSection_sameCourseAlternateSection_doesNotAdd() {
+        Schedule schedule = schedule();
+
+        Course shared = course(112, 3);
+
+        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
+        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
+
+        schedule.addSection(sA);
+        schedule.addSection(sB);
+
+        assertEquals(1, schedule.getScheduleSections().size());
+    }
+
+    @Test
+    void addSection_sameCourseAlternateSection_doesNotAffectCredits() {
+        Schedule schedule = schedule();
+
+        Course shared = course(112, 3);
+
+        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
+        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
+
+        schedule.addSection(sA);
+        schedule.addSection(sB);
+
+        assertEquals(3, schedule.getTotalCredits());
+    }
+
+    @Test
+    void addSection_differentCourses_bothSucceed() {
+        Schedule schedule = schedule();
+
+        Section s1 = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        Section s2 = section(course(220, 3), 'A',
+                slot(11, 0, 12, 0, Day.MONDAY));
+
+        assertTrue(schedule.addSection(s1));
+        assertTrue(schedule.addSection(s2));
+        assertEquals(2, schedule.getScheduleSections().size());
+    }
+
+    @Test
+    void addSection_duplicateAfterRemoval_succeeds() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+        schedule.removeSection(s);
+
+        assertTrue(schedule.addSection(s));
+        assertEquals(1, schedule.getScheduleSections().size());
     }
 }
