@@ -101,7 +101,7 @@ public class JSONSection {
             allCourses.add(course);
         }
         Section newSect = new Section(course, section.charAt(0), new ArrayList<>(List.of(faculty)), total_seats, total_seats-open_seats,
-                timeSlots, is_open, location);
+                timeSlots, is_open, location, "Fall 2026");
 
         // Additional feature
         // Add the section to the courses list of sections
