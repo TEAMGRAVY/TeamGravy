@@ -97,7 +97,7 @@ public class ScheduleFileManager {
 
             public ShortenedSection(Section section){
                 this.name = section.getCourse().getTitle();
-                this.term = section.getCourse().getTerm();
+                this.term = section.getTerm();
                 this.dept = section.getCourse().getDepartment();
                 this.courseId = section.getCourse().getCourseID();
                 this.sectionID = section.getSectionID();
@@ -108,7 +108,7 @@ public class ScheduleFileManager {
                 for (Section section : allSections){
                     if (
                         section.getCourse().getTitle().equals(this.name) &&
-                        section.getCourse().getTerm().equals(this.term) &&
+                        section.getTerm().equals(this.term) &&
                         section.getCourse().getDepartment().equals(this.dept) &&
                         section.getCourse().getCourseID() == this.courseId &&
                         section.getSectionID() == this.sectionID

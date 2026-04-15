@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SectionConflictTest {
     private Course cs112() {
-        return new Course(112, "Object-Oriented Programming", "CS", 3, "Fall");
+        return new Course(112, "Object-Oriented Programming", "CS", 3);
     }
 
     private Course cs220() {
-        return new Course(220, "Data Structures", "CS", 3, "Fall");
+        return new Course(220, "Data Structures", "CS", 3);
     }
 
     private TimeSlot slot(int startH, int startM, int endH, int endM, Day... days) {
@@ -27,7 +27,7 @@ class SectionConflictTest {
     ArrayList<String> profs = new ArrayList<>();
     private Section section(Course c, char id, ArrayList<TimeSlot> timeSlots) {
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 10, timeSlots, false, "");
+        return new Section(c, id, profs, 30, 10, timeSlots, false, "","Fall 2026");
     }
 
     private Activity activity(String name, TimeSlot t) {

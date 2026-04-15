@@ -12,7 +12,7 @@ class ProfessorFilterTest {
     // Helper method to construct sections for testing.
     private Section makeSection(int id, String title, String department, char letter, String professor) {
 
-        Course course = new Course(id, title, department, 3, "Fall");
+        Course course = new Course(id, title, department, 3);
 
         Section section = new Section();
         section.setCourse(course);
@@ -20,6 +20,7 @@ class ProfessorFilterTest {
         ArrayList<String> profs = new ArrayList<>();
         profs.add(professor);
         section.setProfessors(profs);
+        section.setTerm("Fall 2026");
 
         return section;
     }
@@ -27,7 +28,7 @@ class ProfessorFilterTest {
     // Helper method to construct sections for testing.
     private Section makeSection(int id, String title, String department, char letter, String professor1, String professor2) {
 
-        Course course = new Course(id, title, department, 3, "Fall");
+        Course course = new Course(id, title, department, 3);
 
         Section section = new Section();
         section.setCourse(course);
@@ -36,6 +37,7 @@ class ProfessorFilterTest {
         profs.add(professor1);
         profs.add(professor2);
         section.setProfessors(profs);
+        section.setTerm("Fall 2026");
 
         return section;
     }
