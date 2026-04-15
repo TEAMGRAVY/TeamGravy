@@ -142,6 +142,15 @@ body {
   cursor: pointer;
 }
 
+/* Override checkbox checkmark color for visibility */
+.day-checks input[type="checkbox"] {
+  width: auto !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  accent-color: var(--accent);
+  color-scheme: dark;
+}
+
 .filter-divider {
   border: none;
   border-top: 1px solid var(--border);
