@@ -16,7 +16,7 @@ const [activityName, setActivityName] = useState("");
 const [activityStart, setActivityStart] = useState("");
 const [activityEnd, setActivityEnd] = useState("");
 const [activityDays, setActivityDays] = useState([]);
-const [activityMsg, setActivityMsg] = useState(""); // Error message
+const [activityMsg, setActivityMsg] = useState(""); // Error message handling for activity
 
 function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
@@ -108,6 +108,7 @@ async function removeActivity(a) {
           grid[day][start] = {
             span,
             label: `${section.course.department} ${section.course.courseID}`,
+            isActivity: false
           };
 
           // mark rows covered by span so they aren't drawn again
@@ -131,7 +132,7 @@ async function removeActivity(a) {
       const span  = Math.ceil((end - start) / BLOCK);
 
       slot.days.forEach(day => {
-        grid[day][start] = { span, label: activity.name };
+        grid[day][start] = { span, label: activity.name, isActivity: true };
         for (let t = start + BLOCK; t < end; t += BLOCK) {
           grid[day][t] = { skip: true };
         }
@@ -172,7 +173,7 @@ async function removeActivity(a) {
   }
 
     return (
-    <div>
+    <div className="calendar-page">
       <h1 style={{ color: "white" }}>Calendar</h1>
       <h2>Schedule</h2>
       <div className="metrics">
@@ -180,25 +181,7 @@ async function removeActivity(a) {
         <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
         <div className="metric-row"><span>Longest break</span><span>{schedule.longestBreak} min</span></div>
       </div>
-      <ul>
-        {schedule.sections.map((s, i) => (
-          <li key={i}>
-            <strong>{s.course.department} {s.course.courseID} §{s.sectionID}</strong>
-            {" — "}{s.course.title}
-            {" — "}{sectionTimeStr(s)}
-            {" "}
-            <button onClick={() => removeFromSchedule(s)}>Remove</button>
-          </li>
-        ))}
-        {schedule.activities?.map((a, i) => (
-            <li key={`activity-${i}`}>
-              <strong>{a.name}</strong>
-              {" — "}{formatTime(a.time.startTime)}–{formatTime(a.time.endTime)}
-              {" "}
-              <button onClick={() => removeActivity(a)}>Remove</button>
-            </li>
-          ))}
-      </ul>
+
       <br/>
       <hr></hr>
       <br/>
@@ -253,84 +236,91 @@ async function removeActivity(a) {
       <hr />
       <br/>
       <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
+      <div className="calendar-grid-wrapper">
+          <table className="calendar-grid">
 
-      <table style={{
-        margin: "auto",
-        borderCollapse: "collapse"
-      }}>
+            <thead>
+              <tr>
+                <th style = {{
+                  width: "6%"
+                }}></th>
+                    {DAYS.map(d => (
+                    <th key={d} style={{ width: "18.8%" }}>
+                    {DAY_LABELS[d]}
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-        <thead>
-          <tr>
-            <th style = {{
-              width: "6%"
-            }}></th>
-                {DAYS.map(d => (
-                <th key={d} style={{ width: "18.8%" }}>
-                {DAY_LABELS[d]}
-              </th>
-            ))}
-          </tr>
-        </thead>
+            <tbody>
 
-        <tbody>
+              {timeBlocks.map(time => (
 
-          {timeBlocks.map(time => (
+                <tr key={time}>
 
-            <tr key={time}>
+                  <td className="time-label">
+                    {minutesToLabel(time)}
+                  </td>
 
-              <td
-                style={{
-                  verticalAlign: "top",
-                  padding: 0,
-                  fontSize: "12px",
-                  position: "relative",
-                  top: "-12px"
-                }}
-              >
-                {minutesToLabel(time)}
-              </td>
+                  {DAYS.map(day => {
 
-              {DAYS.map(day => {
+                    const cell = grid[day][time];
+                    if (cell?.skip) {
+                      return <td key={day} style={{display:"none"}}></td>;
+                    }
 
-                const cell = grid[day][time];
-                if (cell?.skip) {
-                  return <td key={day} style={{display:"none"}}></td>;
-                }
+                    if (cell) {
+                      return (
+                        <td
+                          key={day}
+                          rowSpan={cell.span}
+                          className={cell.isActivity ? "activity-cell" : "class-cell"}
+                        >
+                          {cell.label}
+                        </td>
+                      );
 
-                if (cell) {
-                  if (cell.label){ // Color the cell if filled.
-                    cell.color = "#a81b1b"
-                  }
-                  return (
-                    <td
-                      key={day}
-                      rowSpan={cell.span}
-                      style={{
-                        background: cell.color,
-                        border: "1px solid #aaa",
-                        padding: "6px",
-                        minWidth: "90px"
-                      }}
-                    >
-                      {cell.label}
-                    </td>
-                  );
+                    }
 
-                }
+                    return (
+                      <td key={day} style={{ border: "1px solid #ddd" }}></td>
+                    );
 
-                return (
-                  <td key={day} style={{ border: "1px solid #ddd" }}></td>
-                );
+                  })}
 
-              })}
+                </tr>
 
-            </tr>
+              ))}
 
-          ))}
-
-        </tbody>
-      </table>
+            </tbody>
+          </table>
+      </div>
       <hr />
+
+      <div className="calendar-schedule">
+          <div className="schedule-items">
+            {schedule.sections.map((s, i) => (
+              <div key={i} className="sched-item">
+                <div className="sched-info">
+                  <div className="sched-code">{s.course.department} {s.course.courseID} §{s.sectionID}</div>
+                  <div className="sched-name">{s.course.title}</div>
+                  <div className="sched-time">{sectionTimeStr(s)}</div>
+                </div>
+                <button className="btn-remove" onClick={() => removeFromSchedule(s)}>✕</button>
+              </div>
+            ))}
+            {schedule.activities?.map((a, i) => (
+              <div key={`activity-${i}`} className="sched-item">
+                <div className="sched-info">
+                  <div className="sched-code">{a.name}</div>
+                  <div className="sched-time">{formatTime(a.time.startTime)}–{formatTime(a.time.endTime)}</div>
+                </div>
+                <button className="btn-remove" onClick={() => removeActivity(a)}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+
     </div>
   );
 }
