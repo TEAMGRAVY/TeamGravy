@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
 // Imports from App not used as it would break the loading of page when tried. Issue for Sprint 2.
+import "./App.css";
 
 // Page for calendar view of schedule
 export default function CalendarPage() {
   
-const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
+const [schedule, setSchedule] = useState({ sections: [], activities: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
 };
+
+// Activity state
+const [activityName, setActivityName] = useState("");
+const [activityStart, setActivityStart] = useState("");
+const [activityEnd, setActivityEnd] = useState("");
+const [activityDays, setActivityDays] = useState([]);
+const [activityMsg, setActivityMsg] = useState(""); // Error message
 
 function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
 useEffect(() => {
-    loadSchedule();
-})
+  loadSchedule();
+}, []);
 
 function formatTime(t) {
   if (!t) return "";
@@ -47,7 +55,7 @@ async function loadSchedule() {
 
   const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
   
-    function timeToMinutes(t) {
+function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
@@ -66,7 +74,10 @@ async function removeFromSchedule(s) {
     loadSchedule();
   }
 
-
+async function removeActivity(a) {
+  await fetch(`/schedule/activity/${a.name}`, { method: "DELETE" });
+  loadSchedule();
+}
 
   const START_DAY = 8 * 60;   // 8:00 AM
   const END_DAY   = 21.5 * 60;  // 9:30 PM
@@ -110,6 +121,23 @@ async function removeFromSchedule(s) {
 
     });
 
+    // Loop through activities - modeled after sections and AI
+    schedule.activities?.forEach(activity => {
+      if (!activity.time) return;
+
+      const slot = activity.time;
+      const start = timeToMinutes(slot.startTime);
+      const end   = timeToMinutes(slot.endTime);
+      const span  = Math.ceil((end - start) / BLOCK);
+
+      slot.days.forEach(day => {
+        grid[day][start] = { span, label: activity.name };
+        for (let t = start + BLOCK; t < end; t += BLOCK) {
+          grid[day][t] = { skip: true };
+        }
+      });
+    });
+
   return grid;
   }
 
@@ -120,13 +148,38 @@ async function removeFromSchedule(s) {
     timeBlocks.push(t);
   }
 
+  async function addActivity() {
+    const res = await fetch("/schedule/activity", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: activityName,
+        startTime: activityStart,
+        endTime: activityEnd,
+        days: activityDays
+      })
+    });
+
+    if (res.ok) {
+      setActivityMsg("");
+      loadSchedule();
+    } else {
+      const data = await res.json();
+      setActivityMsg(data.error);
+    }
+  }
+
     return (
     <div>
-      <h1 style={{ color: "white" }}>Calendar Page</h1>
+      <h1 style={{ color: "white" }}>Calendar</h1>
       <h2>Schedule</h2>
-      <p>Total credits: {schedule.totalCredits}</p>
-      <p>Days without class: {schedule.daysWithoutClass}</p>
-      <p>Longest break: {schedule.longestBreak} min</p>
+      <div className="metrics">
+        <div className="metric-row"><span>Total credits</span><span>{schedule.totalCredits}</span></div>
+        <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
+        <div className="metric-row"><span>Longest break</span><span>{schedule.longestBreak} min</span></div>
+      </div>
       <ul>
         {schedule.sections.map((s, i) => (
           <li key={i}>
@@ -137,8 +190,68 @@ async function removeFromSchedule(s) {
             <button onClick={() => removeFromSchedule(s)}>Remove</button>
           </li>
         ))}
+        {schedule.activities?.map((a, i) => (
+            <li key={`activity-${i}`}>
+              <strong>{a.name}</strong>
+              {" — "}{formatTime(a.time.startTime)}–{formatTime(a.time.endTime)}
+              {" "}
+              <button onClick={() => removeActivity(a)}>Remove</button>
+            </li>
+          ))}
       </ul>
+      <br/>
+      <hr></hr>
+      <br/>
+      <div className="custom-activity">
+        <h3>Add Activity</h3>
+
+        {/* Name */}
+        <input
+          placeholder="Activity name"
+          value={activityName}
+          onChange={e => setActivityName(e.target.value)}
+        />
+
+         {/* Start Time */}
+          <input
+            type="time"
+            value={activityStart}
+            onChange={e => setActivityStart(e.target.value)}
+          />
+
+          {/* End Time */}
+          <input
+            type="time"
+            value={activityEnd}
+            onChange={e => setActivityEnd(e.target.value)}
+          />
+
+        {/* Days */}
+        <div className="day-checks">
+          {Object.entries(DAY_LABELS).map(([day, label]) => (
+            <label key={day}>
+              <input
+                type="checkbox"
+                checked={activityDays.includes(day)}
+                onChange={() =>
+                  setActivityDays(prev =>
+                    prev.includes(day)
+                      ? prev.filter(d => d !== day)
+                      : [...prev, day]
+                  )
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+
+        <button onClick={addActivity}>Add Activity</button>
+        {activityMsg && <div style={{ color: "red" }}>{activityMsg}</div>}
+      </div>
+      <br/>
       <hr />
+      <br/>
       <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
 
       <table style={{

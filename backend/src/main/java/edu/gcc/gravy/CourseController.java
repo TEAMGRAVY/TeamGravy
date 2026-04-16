@@ -70,7 +70,6 @@ public class CourseController {
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
             String term     = ctx.queryParam("term");
-            String term = ctx.queryParam("term");
             String isOpenParam = ctx.queryParam("isOpen");
 
             // Start with a base search on code + keyword, then layer on filters
@@ -119,6 +118,7 @@ public class CourseController {
             ctx.contentType("application/json");
             ctx.result(gson.toJson(Map.of(
                     "sections",         schedule.getScheduleSections(),
+                    "activities",       schedule.getScheduleActivities(),
                     "totalCredits",     schedule.getTotalCredits(),
                     "daysWithoutClass", schedule.getDaysWithoutClass(),
                     "longestBreak",     schedule.getLongestBreak()
@@ -205,6 +205,28 @@ public class CourseController {
                 ctx.status(201).json(Map.of("success", true));
             } else {
                 ctx.status(409).json(Map.of("error", schedule.getErrorMessage()));
+            }
+        });
+
+        // Removes an activity from the schedule
+        app.delete("/schedule/activity/{name}", ctx -> {
+            String name = ctx.pathParam("name");
+            Activity toRemove = null;
+
+            for (Activity a : schedule.getScheduleActivities()) {
+                if (a.getName().equals(name)) {
+                    toRemove = a;
+                    break;
+                }
+            }
+
+            if (toRemove == null) { ctx.status(404); return; }
+            boolean removed = schedule.removeActivity(toRemove);
+
+            if (removed) {
+                ctx.status(204);
+            } else {
+                ctx.status(404).json(Map.of("error", "Activity not in schedule"));
             }
         });
 

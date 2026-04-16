@@ -367,3 +367,15 @@ body {
 }
 
 .sched-bar button:hover { border-color: var(--accent); color: var(--accent); }
+
+.custom-activity input,
+.custom-activity select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  padding: 5px 7px;
+  border-radius: 4px;
+  width: 100%;
+}
