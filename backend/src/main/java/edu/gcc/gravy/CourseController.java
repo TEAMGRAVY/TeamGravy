@@ -69,7 +69,7 @@ public class CourseController {
             String credits  = ctx.queryParam("credits");
             String timeFrom = ctx.queryParam("timeFrom");
             String timeTo   = ctx.queryParam("timeTo");
-            String term = ctx.queryParam("term");
+            String term     = ctx.queryParam("term");
             String isOpenParam = ctx.queryParam("isOpen");
 
             // Start with a base search on code + keyword, then layer on filters
@@ -118,6 +118,7 @@ public class CourseController {
             ctx.contentType("application/json");
             ctx.result(gson.toJson(Map.of(
                     "sections",         schedule.getScheduleSections(),
+                    "activities",       schedule.getScheduleActivities(),
                     "totalCredits",     schedule.getTotalCredits(),
                     "daysWithoutClass", schedule.getDaysWithoutClass(),
                     "longestBreak",     schedule.getLongestBreak()
@@ -168,6 +169,64 @@ public class CourseController {
                 ctx.status(204);
             } else {
                 ctx.status(404).json(Map.of("error", "Section not in schedule"));
+            }
+        });
+
+        // Adds an activity to the schedule
+        // POST /schedule/activity
+        app.post("/schedule/activity", ctx -> {
+            Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
+
+            String name = (String) body.get("name");
+            String start = (String) body.get("startTime");
+            String end   = (String) body.get("endTime");
+
+            List<String> dayStrings = (List<String>) body.get("days");
+
+            LocalTime startTime = LocalTime.parse(start);
+            LocalTime endTime   = LocalTime.parse(end);
+
+            Set<Day> days = dayStrings.stream()
+                    .map(Day::valueOf)
+                    .collect(Collectors.toSet());
+
+            // If the user didn't add input for all the required fields
+            if (name == null || start == null || end == null || days == null) {
+                ctx.status(400).json(Map.of("error", "Missing fields"));
+                return;
+            }
+
+            TimeSlot slot = new TimeSlot(startTime, endTime, days);
+            Activity activity = new Activity(name, slot);
+
+            boolean added = schedule.addActivity(activity);
+
+            if (added) {
+                ctx.status(201).json(Map.of("success", true));
+            } else {
+                ctx.status(409).json(Map.of("error", schedule.getErrorMessage()));
+            }
+        });
+
+        // Removes an activity from the schedule
+        app.delete("/schedule/activity/{name}", ctx -> {
+            String name = ctx.pathParam("name");
+            Activity toRemove = null;
+
+            for (Activity a : schedule.getScheduleActivities()) {
+                if (a.getName().equals(name)) {
+                    toRemove = a;
+                    break;
+                }
+            }
+
+            if (toRemove == null) { ctx.status(404); return; }
+            boolean removed = schedule.removeActivity(toRemove);
+
+            if (removed) {
+                ctx.status(204);
+            } else {
+                ctx.status(404).json(Map.of("error", "Activity not in schedule"));
             }
         });
 
