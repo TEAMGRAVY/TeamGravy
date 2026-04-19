@@ -124,6 +124,7 @@ export default function App() {
   async function loadSchedule() {
     const res  = await fetch("/schedule");
     const data = await res.json();
+    console.log(data);
     setSchedule(data);
   }
 
