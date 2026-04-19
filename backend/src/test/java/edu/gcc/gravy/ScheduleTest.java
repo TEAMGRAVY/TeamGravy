@@ -750,6 +750,83 @@ class ScheduleTest {
         assertEquals(70, schedule.getLongestBreak());
     }
 
+    @Test
+    void getLongestBreak_singleActivity_returns0() {
+        Schedule schedule = schedule();
+
+        schedule.addActivity(activity("Gym",
+                slot(10, 0, 11, 0, Day.MONDAY)));
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_sectionAndActivity() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(9,0,10,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Gym",
+                slot(12,0,13,0,Day.MONDAY)));
+
+        // 10 → 12 = 120
+        assertEquals(120, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_activityOverlapsClass() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(9,0,11,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Overlap",
+                slot(10,0,12,0,Day.MONDAY)));
+
+        // overlap → no valid break
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_multipleActivities() {
+        Schedule schedule = schedule();
+
+        schedule.addActivity(activity("Morning",
+                slot(8,0,9,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Midday",
+                slot(11,0,12,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Evening",
+                slot(15,0,16,0,Day.MONDAY)));
+
+        // breaks:
+        // 9–11 = 120
+        // 12–15 = 180
+        assertEquals(180, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_mixedDaysWithActivities() {
+        Schedule schedule = schedule();
+
+        // Monday small
+        schedule.addActivity(activity("A",
+                slot(9,0,10,0,Day.MONDAY)));
+        schedule.addActivity(activity("B",
+                slot(11,0,12,0,Day.MONDAY)));
+
+        // Tuesday large
+        schedule.addActivity(activity("C",
+                slot(8,0,9,0,Day.TUESDAY)));
+        schedule.addActivity(activity("D",
+                slot(15,0,16,0,Day.TUESDAY)));
+
+        // 9 → 15 = 360
+        assertEquals(360, schedule.getLongestBreak());
+    }
+
     // ---------- MULTIPLE TIMESLOTS ----------
 
     @Test
