@@ -9,19 +9,16 @@ public class Course {
     private String title;
     private String department;
     private int creditHours;
-    private String term;
     private List<Course> preReqs;
     private List<Course> coReqs;
     private String yearStanding;
     private List<Section> sections;
-    private double rating;
 
-    public Course(int courseID, String title, String department, int creditHours, String term) {
+    public Course(int courseID, String title, String department, int creditHours) {
         this.courseID = courseID;
         this.title = title;
         this.department = department;
         this.creditHours = creditHours;
-        this.term = term;
         sections = new ArrayList<>();
     }
 
@@ -41,10 +38,6 @@ public class Course {
         return creditHours;
     }
 
-    public String getTerm() {
-        return term;
-    }
-
     public List<Section> getSections() {
         return sections;
     }
@@ -58,10 +51,6 @@ public class Course {
 
     public String getYearStanding() {
         return yearStanding;
-    }
-
-    public double getRating() {
-        return rating;
     }
 
     @Override

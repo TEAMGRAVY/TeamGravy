@@ -16,7 +16,7 @@ public class TermFilter extends Filter {
     public List<Section> apply(List<Section> sections) {
         List<Section> results = new ArrayList<>();
         for (Section section : sections) {
-            if (Objects.equals(section.getCourse().getTerm(), term)) {
+            if (Objects.equals(section.getTerm(), term)) {
                 results.add(section);
             }
         }

@@ -15,8 +15,7 @@ class TimeRangeFilterTest {
                 112,
                 "Object-Oriented Programming",
                 "CS",
-                3,
-                "Fall"
+                3
         );
     }
 
@@ -25,8 +24,7 @@ class TimeRangeFilterTest {
                 220,
                 "Data Structures",
                 "CS",
-                3,
-                "Fall"
+                3
         );
     }
 
@@ -53,7 +51,8 @@ class TimeRangeFilterTest {
                 18,
                 slots,
                 false,
-                ""
+                "",
+                "Fall_2026"
         );
     }
 

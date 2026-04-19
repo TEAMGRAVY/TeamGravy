@@ -13,7 +13,7 @@ class ScheduleTest {
     // ---------- Helpers ----------
 
     private Course course(int id, int credits) {
-        return new Course(id, "CS " + id, "CS", credits, "Fall");
+        return new Course(id, "CS " + id, "CS", credits);
     }
 
     ArrayList<String> profs = new ArrayList<>();
@@ -32,7 +32,7 @@ class ScheduleTest {
     private Section createTestSection(String courseCode, int credits, Day day,
                                       int startHour, int startMin, int endHour, int endMin) {
         // Create a simple Course for testing
-        Course course = new Course(courseCounter++, courseCode, "CS", credits, "Fall");
+        Course course = new Course(courseCounter++, courseCode, "CS", credits);
 
         // Create TimeSlot
         TimeSlot timeSlot = new TimeSlot(
@@ -43,22 +43,22 @@ class ScheduleTest {
 
         // Use 'A' as sectionID
         profs.add("Dr.Smith");
-        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(timeSlot)), true, "");
+        return new Section(course, 'A', profs, 30, 0, new ArrayList<>(List.of(timeSlot)), true, "","Fall 2026");
     }
 
     private Section section(Course c, char id, TimeSlot t) {
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "");
+        return new Section(c, id, profs, 30, 10, new ArrayList<>(List.of(t)), true, "", "Fall 2026");
     }
 
     private Section section(Course c, char id, ArrayList<TimeSlot> slots) {
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 10, slots, true, "");
+        return new Section(c, id, profs, 30, 10, slots, true, "", "Fall 2026");
     }
 
     private Section fullSection(Course c, char id, TimeSlot t) {
         profs.add("Dr. Smith");
-        return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "");
+        return new Section(c, id, profs, 30, 30, new ArrayList<>(List.of(t)), true, "", "Fall 2026");
     }
 
     private Activity activity(String name, TimeSlot t) {
@@ -443,7 +443,8 @@ class ScheduleTest {
                 10,
                 new ArrayList<>(List.of(slot(9,0,10,0,Day.MONDAY))),
                 false,  // closed
-                ""
+                "",
+                "Fall 2026"
         );
 
         assertFalse(schedule.addSection(closed));
@@ -774,14 +775,15 @@ class ScheduleTest {
 
         profs.add("Dr.Smith");
         Section section = new Section(
-                new Course(101, "Test Course", "CS", 3, "Fall"),
+                new Course(101, "Test Course", "CS", 3),
                 'A',
                 profs,
                 30,
                 10,
                 times,
                 true,
-                "STEM 101"
+                "STEM 101",
+                "Fall 2026"
         );
 
         assertTrue(schedule.addSection(section));
@@ -826,14 +828,15 @@ class ScheduleTest {
 
         profs.add("Dr.Smith");
         Section section = new Section(
-                new Course(101, "Test Course", "CS", 3, "Fall"),
+                new Course(101, "Test Course", "CS", 3),
                 'A',
                 profs,
                 30,
                 10,
                 times,
                 true,
-                "STEM 101"
+                "STEM 101",
+                "Fall 2026"
         );
 
         assertTrue(schedule.addSection(section));

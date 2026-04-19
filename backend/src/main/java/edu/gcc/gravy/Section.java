@@ -7,6 +7,7 @@ import java.util.Objects;
 public class Section {
     private Course course;
     private char sectionID;
+    private String term;
     private ArrayList<String> professor;
     private int capacity;
     private int enrolled;
@@ -17,7 +18,7 @@ public class Section {
     public Section() {
     }
 
-    public Section(Course course, char sectionID, ArrayList<String> professor, int capacity, int enrolled, ArrayList<TimeSlot> time, boolean isOpen, String location) {
+    public Section(Course course, char sectionID, ArrayList<String> professor, int capacity, int enrolled, ArrayList<TimeSlot> time, boolean isOpen, String location, String term) {
         this.course = course;
         this.sectionID = sectionID;
         this.professor = professor;
@@ -26,6 +27,7 @@ public class Section {
         this.time = time;
         this.isOpen = isOpen;
         this.location = location;
+        this.term = term;
     }
 
     public Section(Course course, char sectionID, ArrayList<String> professor) {
@@ -101,6 +103,12 @@ public class Section {
     public boolean isOpen() { return  isOpen; }
 
     public  String getLocation() { return location; }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {this.term = term;}
 
     @Override
     public boolean equals(Object o) { // Override for quicker removeSection() in Schedule
