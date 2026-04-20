@@ -21,6 +21,8 @@ public class Main {
                 });
             });
         }).start(7000);
-        CourseController.registerRoutes(app);
+        SupabaseService supabase = new SupabaseService();
+        AuthMiddleware auth = new AuthMiddleware();
+        CourseController.registerRoutes(app, supabase, auth);
     }
 }

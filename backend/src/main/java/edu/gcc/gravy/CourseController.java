@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 
 public class CourseController {
 
+
     // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static final Gson gson = new GsonBuilder()
@@ -47,7 +48,7 @@ public class CourseController {
         return manager.SaveSchedule(scheduleName, schedule);
     }
 
-    public static void registerRoutes(Javalin app) {
+    public static void registerRoutes(Javalin app, SupabaseService supabase, AuthMiddleware auth) {
 
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
 
@@ -197,6 +198,26 @@ public class CourseController {
             schedule = new Schedule(null,
                     "New Schedule",
                     "2026_Spring");
+        });
+
+        app.before("/profile", auth);
+
+        app.get("/profile", ctx -> {
+            String userId = ctx.attribute("userId");
+            String token = ctx.attribute("token");
+
+            String profile = supabase.getProfile(userId, token);
+            ctx.result(profile);
+        });
+
+        app.patch("/profile", ctx -> {
+            String userId = ctx.attribute("userId");
+            String token = ctx.attribute("token");
+
+            String body = ctx.body();
+            String result = supabase.updateProfile(userId, token, body);
+
+            ctx.result(result);
         });
     }
 }
