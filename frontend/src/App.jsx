@@ -33,7 +33,7 @@ export function sectionTimeStr(section) {
 
 // Builds the URL used to add/remove a section from the schedule
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
 export default function App() {
@@ -171,7 +171,7 @@ export default function App() {
 // Set of IDs for sections currently in the schedule, used to show Add vs Remove
 // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
-    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
+    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`)
   );
 
 
@@ -260,12 +260,12 @@ export default function App() {
               </div>
               <div className="results-list">
                 {results.map((s, i) => {
-                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
+                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
                   return (
                     <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}>
                       <div className="result-main">
-                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.course.term}</div>
+                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
                         <div className="result-name">{s.course.title}</div>
                         <div className="result-meta">{s.professor[0] ?? "TBA"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
                       </div>
