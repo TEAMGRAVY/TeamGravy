@@ -19,7 +19,7 @@ const [activityDays, setActivityDays] = useState([]);
 const [activityMsg, setActivityMsg] = useState(""); // Error message handling for activity
 
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
 useEffect(() => {
