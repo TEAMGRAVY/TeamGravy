@@ -12,7 +12,7 @@ class SearchTest {
     // Helper to construct test sections
     private Section makeSection(int id, String title, char letter) {
 
-        Course course = new Course(id, title, "COMP", 3, "Fall");
+        Course course = new Course(id, title, "COMP", 3);
 
         Section section = new Section();
         section.setCourse(course);
@@ -157,11 +157,12 @@ class SearchTest {
     @Test
     void debugBaseSearch() {
 
-        Course c = new Course(141,"Programming I","COMP",3,"Fall");
+        Course c = new Course(141,"Programming I","COMP",3);
 
         Section s = new Section();
         s.setCourse(c);
         s.setSectionID('A');
+        s.setTerm("Fall 2026");
 
         List<Section> list = new ArrayList<>();
         list.add(s);

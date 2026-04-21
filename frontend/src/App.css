@@ -142,6 +142,15 @@ body {
   cursor: pointer;
 }
 
+/* Override checkbox checkmark color for visibility */
+.day-checks input[type="checkbox"] {
+  width: auto !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  accent-color: var(--accent);
+  color-scheme: dark;
+}
+
 .filter-divider {
   border: none;
   border-top: 1px solid var(--border);
@@ -327,7 +336,7 @@ body {
 .metric-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .metric-row span:first-child { color: var(--sub); }
@@ -358,3 +367,174 @@ body {
 }
 
 .sched-bar button:hover { border-color: var(--accent); color: var(--accent); }
+
+.custom-activity input,
+.custom-activity select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  padding: 5px 7px;
+  border-radius: 4px;
+  width: 100%;
+}
+
+/* ── Calendar Page ── */
+.calendar-page {
+  padding: 20px 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.calendar-page h1 {
+  font-size: 2.0rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.calendar-page h2 {
+  font-size: 1.0rem;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+/* ── Add Activity Form ── */
+.custom-activity {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.custom-activity h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.custom-activity input[type="text"],
+.custom-activity input[type="time"],
+.custom-activity input:not([type="checkbox"]) {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  padding: 5px 7px;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+}
+
+.custom-activity input:focus {
+  border-color: var(--accent);
+}
+
+.custom-activity button {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  align-self: flex-start;
+  margin: 0 auto;
+}
+
+.custom-activity button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ── Calendar Grid ── */
+.calendar-grid-wrapper {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.calendar-grid {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+}
+
+.calendar-grid th {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.calendar-grid td {
+  border: 1px solid var(--border);
+  min-width: 100px;
+  height: 24px;
+}
+
+.calendar-grid .time-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--sub);
+  padding: 0 6px;
+  white-space: nowrap;
+  vertical-align: top;
+  position: relative;
+  top: -10px;
+  border: none;
+  width: 60px;
+}
+
+.calendar-grid .class-cell {
+  background: #a81b1b;
+  border: 1px solid #c42222;
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+
+.calendar-grid .activity-cell {
+  background: #1b5ea8;
+  border: 1px solid #2272c4;
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+
+/* ── Calendar schedule list (more compact than search panel) ── */
+.calendar-schedule .sched-item {
+  padding: 4px 8px;
+}
+
+.calendar-schedule .sched-name {
+  display: none;
+}
