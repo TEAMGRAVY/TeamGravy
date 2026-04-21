@@ -68,10 +68,8 @@ public class JSONSection {
                     yield "F";
             };
         }
-
     }
-
-
+    
     /**
      * Converts the JSONSection object to a Section
      * @param allCourses - An arraylist that has all
@@ -131,6 +129,4 @@ public class JSONSection {
         }
         this.total_seats = section1.getCapacity();
     }
-
-
 }
