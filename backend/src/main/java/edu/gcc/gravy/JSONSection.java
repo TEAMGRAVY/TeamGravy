@@ -69,7 +69,7 @@ public class JSONSection {
             };
         }
     }
-    
+
     /**
      * Converts the JSONSection object to a Section
      * @param allCourses - An arraylist that has all
