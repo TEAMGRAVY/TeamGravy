@@ -540,7 +540,7 @@ body {
 }
 
 /* ── Credit warning modal ──────────────────────────────────────
-   Added in Commit 1. Overlay and box shell only — no trigger
+   Overlay and box shell only — no trigger
    logic yet. position: fixed places it above all page content.
 ─────────────────────────────────────────────────────────────── */
 .modal-overlay {

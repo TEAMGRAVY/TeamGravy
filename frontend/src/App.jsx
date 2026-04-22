@@ -65,7 +65,7 @@ export default function App() {
 
   // ------- Modal state shell ---------
   // creditWarning controls whether the modal is visible.
-  // lastAdded will hold the section that triggered it (wired up in Commit 2).
+  // lastAdded will hold the section that triggered it.
   const [creditWarning, setCreditWarning] = useState(false);
   const [lastAdded,     setLastAdded]     = useState(null);
   // ------------------------------------
@@ -161,7 +161,7 @@ export default function App() {
   // immediately so we have the real new totalCredits. If it exceeds
   // 18 we store the section that was just added and open the modal.
   // The modal's "Undo add" button is visible but not yet functional
-  // (that is wired up in Commit 3).
+
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
