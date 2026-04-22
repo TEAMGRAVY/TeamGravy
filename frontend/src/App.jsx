@@ -186,6 +186,19 @@ export default function App() {
     }
   }
 
+  // Restores the last removed section by re-adding it via the same POST
+  // endpoint that addToSchedule uses. Once the section is back in the
+  // schedule, lastRemoved is cleared so a stale value can never be
+  // accidentally re-used if the modal were somehow reopened later.
+  async function undoRemove() {
+    if (lastRemoved) {
+      await fetch(scheduleUrl(lastRemoved), { method: "POST" });
+      setLastRemoved(null);
+      loadSchedule();
+    }
+    setLowCreditWarning(false);
+  }
+
 // Set of IDs for sections currently in the schedule, used to show Add vs Remove
 // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
@@ -348,17 +361,24 @@ export default function App() {
               <span className="modal-title">Below full-time credit minimum</span>
             </div>
 
+            {/* The ?. optional chaining on lastRemoved guards against the brief
+                render frame where the modal is closing and lastRemoved is
+                being cleared back to null — without it React would crash. */}
             <p className="modal-body">
-              Removing this course drops you below the 12-credit minimum
-              required to be a full-time student. You can restore it or
-              continue with the removal.
+              Removing{" "}
+              <span className="modal-course">
+                {lastRemoved?.course.department} {lastRemoved?.course.courseID} {lastRemoved?.sectionID}
+              </span>{" "}
+              brings your total to{" "}
+              <span className="modal-credits">{schedule.totalCredits} credits</span>,
+              which is below the 12-credit minimum required to be a full-time student.
             </p>
 
             <div className="modal-actions">
               <button className="btn-modal-keep" onClick={() => setLowCreditWarning(false)}>
                 Keep removal
               </button>
-              <button className="btn-modal-restore">
+              <button className="btn-modal-restore" onClick={undoRemove}>
                 Undo remove
               </button>
             </div>
