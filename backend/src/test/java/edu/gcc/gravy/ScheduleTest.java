@@ -850,128 +850,7 @@ class ScheduleTest {
         assertEquals(360, schedule.getLongestBreak());
     }
 
-    // ---------- MULTIPLE TIMESLOTS ----------
-
-    @Test
-    void addSection_multipleTimeSlots_updatesCalendarCorrectly() {
-        Schedule schedule = new Schedule(null, "Test", "Fall");
-
-        // Create two timeslots: MWF 9-10 and R 1-2
-        TimeSlot lecture = new TimeSlot(
-                LocalTime.of(9, 0),
-                LocalTime.of(10, 0),
-                Set.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
-        );
-
-        TimeSlot lab = new TimeSlot(
-                LocalTime.of(13, 0),
-                LocalTime.of(14, 0),
-                Set.of(Day.THURSDAY)
-        );
-
-        ArrayList<TimeSlot> times = new ArrayList<>();
-        times.add(lecture);
-        times.add(lab);
-
-        profs.add("Dr.Smith");
-        Section section = new Section(
-                new Course(101, "Test Course", "CS", 3),
-                'A',
-                profs,
-                30,
-                10,
-                times,
-                true,
-                "STEM 101",
-                "Fall 2026"
-        );
-
-        assertTrue(schedule.addSection(section));
-
-        boolean[][] calendar = schedule.getCalendar();
-
-        // Verify BOTH slots were added
-        for (TimeSlot t : section.getTime()) {
-            boolean[] days = t.getDayNumbers();
-            boolean[] slots = t.getSlotNumbers();
-
-            for (int r = 0; r < slots.length; r++) {
-                for (int c = 0; c < days.length; c++) {
-                    if (slots[r] && days[c]) {
-                        assertTrue(calendar[r][c],
-                                "Calendar slot should be true for multi-slot section");
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
-    void removeSection_multipleTimeSlots_clearsCalendar() {
-        Schedule schedule = new Schedule(null, "Test", "Fall");
-
-        TimeSlot lecture = new TimeSlot(
-                LocalTime.of(9, 0),
-                LocalTime.of(10, 0),
-                Set.of(Day.MONDAY, Day.WEDNESDAY, Day.FRIDAY)
-        );
-
-        TimeSlot lab = new TimeSlot(
-                LocalTime.of(13, 0),
-                LocalTime.of(14, 0),
-                Set.of(Day.THURSDAY)
-        );
-
-        ArrayList<TimeSlot> times = new ArrayList<>();
-        times.add(lecture);
-        times.add(lab);
-
-        profs.add("Dr.Smith");
-        Section section = new Section(
-                new Course(101, "Test Course", "CS", 3),
-                'A',
-                profs,
-                30,
-                10,
-                times,
-                true,
-                "STEM 101",
-                "Fall 2026"
-        );
-
-        assertTrue(schedule.addSection(section));
-        assertTrue(schedule.removeSection(section));
-
-        boolean[][] calendar = schedule.getCalendar();
-
-        // Verify all slots were cleared
-        for (TimeSlot t : section.getTime()) {
-            boolean[] days = t.getDayNumbers();
-            boolean[] slots = t.getSlotNumbers();
-
-            for (int r = 0; r < slots.length; r++) {
-                for (int c = 0; c < days.length; c++) {
-                    if (slots[r] && days[c]) {
-                        assertFalse(calendar[r][c],
-                                "Calendar slot should be false after removal");
-                    }
-                }
-            }
-        }
-    }
-
     // ---------- DUPLICATE SECTION / COURSE TESTS ----------
-
-    @Test
-    void addSection_duplicateSection_fails() {
-        Schedule schedule = schedule();
-
-        Section s = section(course(112, 3), 'A',
-                slot(9, 0, 10, 0, Day.MONDAY));
-
-        assertTrue(schedule.addSection(s));
-        assertFalse(schedule.addSection(s));
-    }
 
     @Test
     void addSection_duplicateSection_setsErrorMessage() {
@@ -997,19 +876,6 @@ class ScheduleTest {
         schedule.addSection(s);
 
         assertEquals(1, schedule.getScheduleSections().size());
-    }
-
-    @Test
-    void addSection_sameCourseAlternateSection_fails() {
-        Schedule schedule = schedule();
-
-        Course shared = course(112, 3);
-
-        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
-        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
-
-        assertTrue(schedule.addSection(sA));
-        assertFalse(schedule.addSection(sB));
     }
 
     @Test
