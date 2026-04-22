@@ -68,9 +68,7 @@ public class JSONSection {
                     yield "F";
             };
         }
-
     }
-
 
     /**
      * Converts the JSONSection object to a Section
@@ -131,6 +129,4 @@ public class JSONSection {
         }
         this.total_seats = section1.getCapacity();
     }
-
-
 }

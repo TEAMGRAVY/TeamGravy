@@ -33,16 +33,16 @@ export function sectionTimeStr(section) {
 
 // Builds the URL used to add/remove a section from the schedule
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
 export default function App() {
-    // Dropdown options populated from /courses on load
+  // Dropdown options populated from /courses on load
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
   const [terms,       setTerms]       = useState([]);
 
-    // Filter state maps to query param sent to /search
+  // Filter state maps to query param sent to /search
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
   const [dept,     setDept]     = useState("");
@@ -54,23 +54,30 @@ export default function App() {
   const [days,     setDays]     = useState([]);
   const [isOpen,   setIsOpen]   = useState(false);
 
-    // Search results returned from /search
+  // Search results returned from /search
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
 
-    // Schedule state (sections + metrics from schedule)
+  // Schedule state (sections + metrics from schedule)
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
-// Toggles a day in/out of the days filter array
+  // ------- Modal state shell ---------
+  // creditWarning controls whether the modal is visible.
+  // lastAdded will hold the section that triggered it.
+  const [creditWarning, setCreditWarning] = useState(false);
+  const [lastAdded,     setLastAdded]     = useState(null);
+  // ------------------------------------
+
+  // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   }
 
-// Load dropdown options from /courses and fetch the current schedule
+  // Load dropdown options from /courses and fetch the current schedule
   useEffect(() => {
     fetch("/courses")
       .then(r => r.json())
@@ -83,8 +90,8 @@ export default function App() {
     loadSchedule();
   }, []);
 
-// Search — fires 300ms after the user stops changing any filter
-// If nothing is filled in, clears results instead of searching
+  // Search — fires 300ms after the user stops changing any filter
+  // If nothing is filled in, clears results instead of searching
   useEffect(() => {
     const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length || isOpen;
     if (!hasInput) { setResults([]); setSearched(false); return; }
@@ -112,7 +119,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days, isOpen]);
 
-// Clears all filters and results
+  // Clears all filters and results
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
     setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
@@ -124,6 +131,7 @@ export default function App() {
   async function loadSchedule() {
     const res  = await fetch("/schedule");
     const data = await res.json();
+    console.log(data);
     setSchedule(data);
   }
 
@@ -147,34 +155,56 @@ export default function App() {
     loadSchedule();
   }
 
-// Sends a POST to add a section to the schedule
-// If the backend rejects it, shows error
+  // Sends a POST to add a section to the schedule.
+  // If the backend rejects it, shows the existing error message.
+  // ------- After a successful add, fetch the updated schedule
+  // immediately so we have the real new totalCredits. If it exceeds
+  // 18 we store the section that was just added and open the modal.
+  // The modal's "Undo add" button is visible but not yet functional
+
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
       setSchedMsg("");
-      loadSchedule();
+      const updated = await fetch("/schedule").then(r => r.json());
+      setSchedule(updated);
+      if (updated.totalCredits > 18) {
+        setLastAdded(s);
+        setCreditWarning(true);
+      }
     } else {
       const data = await res.json();
       setSchedMsg(data.error);
     }
   }
 
-// Sends a DELETE to remove a section from the schedule
+  // --- Undo the last add from inside the credit warning modal.
+  // Calls the same DELETE endpoint that removeFromSchedule uses, then
+  // reloads the schedule and closes the modal. lastAdded is cleared so
+  // a stale value can never be accidentally re-used by a later modal open.
+  async function undoAdd() {
+    if (lastAdded) {
+      await fetch(scheduleUrl(lastAdded), { method: "DELETE" });
+      setLastAdded(null);
+      loadSchedule();
+    }
+    setCreditWarning(false);
+  }
+
+  // Sends a DELETE to remove a section from the schedule
   async function removeFromSchedule(s) {
     await fetch(scheduleUrl(s), { method: "DELETE" });
     setSchedMsg("");
     loadSchedule();
   }
 
-// Set of IDs for sections currently in the schedule, used to show Add vs Remove
-// Includes term so sections from different semesters don't collide!!!!
+  // Set of IDs for sections currently in the schedule, used to show Add vs Remove
+  // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
-    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
+    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`)
   );
 
-
-// NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
+  // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
     <div>
       <nav className="nav">
@@ -244,10 +274,10 @@ export default function App() {
               <hr className="filter-divider" />
               <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Availability</div>
               <div className="day-checks">
-              <label>
-                <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
-                Open
-              </label>
+                <label>
+                  <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
+                  Open
+                </label>
               </div>
               <button className="btn-reset" onClick={reset}>Reset</button>
             </aside>
@@ -259,12 +289,12 @@ export default function App() {
               </div>
               <div className="results-list">
                 {results.map((s, i) => {
-                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
+                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
                   return (
                     <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}>
                       <div className="result-main">
-                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.course.term}</div>
+                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
                         <div className="result-name">{s.course.title}</div>
                         <div className="result-meta">{s.professor[0] ?? "TBA"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
                       </div>
@@ -307,6 +337,53 @@ export default function App() {
         } />
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
+
+      {/* ───── Modal body now shows the real course and credit total ────
+          lastAdded holds the section object, so we can
+          read its department, courseID, and sectionID directly. The live
+          schedule.totalCredits value comes from the fetch in addToSchedule.
+          The ?. (optional chaining) on lastAdded is a safety guard. It
+          ensures nothing crashes during the brief moment the modal is
+          closing and lastAdded is being cleared back to null.
+      ─────────────────────────────────────────────────────────────────── */}
+      {creditWarning && (
+        <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+            <div className="modal-header">
+              <div className="modal-icon">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L14.9 14H1.1L8 2Z" stroke="var(--red)" strokeWidth="1.4"/>
+                  <line x1="8" y1="7" x2="8" y2="10" stroke="var(--red)" strokeWidth="1.5"/>
+                  <circle cx="8" cy="12" r="0.7" fill="var(--red)"/>
+                </svg>
+              </div>
+              <span className="modal-title">Exceeds maximum credit hour limit</span>
+            </div>
+
+            <p className="modal-body">
+              Adding{" "}
+              <span className="modal-course">
+                {lastAdded?.course.department} {lastAdded?.course.courseID} {lastAdded?.sectionID}
+              </span>{" "}
+              brings your total to{" "}
+              <span className="modal-credits">{schedule.totalCredits} credits</span>,
+              which exceeds the 18-credit recommended limit.
+            </p>
+
+            <div className="modal-actions">
+              <button className="btn-modal-keep" onClick={() => setCreditWarning(false)}>
+                Keep it
+              </button>
+              <button className="btn-modal-undo" onClick={undoAdd}>
+                Undo add
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
