@@ -13,6 +13,7 @@
   --accent:   #4a9eff;
   --green:    #3ecf8e;
   --red:      #f06b6b;
+  --yellow:   #f0c14b;
   --mono:     'JetBrains Mono', monospace;
   --sans:     'Inter', sans-serif;
 }
@@ -539,10 +540,12 @@ body {
   display: none;
 }
 
-/* ── Credit warning modal ──────────────────────────────────────
-   Overlay and box shell only — no trigger
-   logic yet. position: fixed places it above all page content.
-─────────────────────────────────────────────────────────────── */
+/* ── Credit warning modals ───────────────────────────────────────────────
+   Shared styles used by both the high credit (red) and low credit (amber)
+   modals. position: fixed on the overlay places it above all page content.
+   The modal-icon--warn modifier class overrides the icon color for the
+   low credit modal without needing a separate full class definition.
+────────────────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -580,6 +583,13 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* Amber variant for the low credit modal — overrides only the colors,
+   everything else inherits from .modal-icon above. */
+.modal-icon--warn {
+  background: rgba(240, 193, 75, 0.1);
+  border-color: var(--yellow);
 }
 
 .modal-title {
@@ -625,6 +635,7 @@ body {
 
 .btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
 
+/* Red undo button for the high credit modal */
 .btn-modal-undo {
   background: transparent;
   border: 1px solid var(--red);
@@ -638,3 +649,18 @@ body {
 }
 
 .btn-modal-undo:hover { background: var(--red); color: #fff; }
+
+/* Amber restore button for the low credit modal */
+.btn-modal-restore {
+  background: transparent;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-restore:hover { background: var(--yellow); color: #000; }
