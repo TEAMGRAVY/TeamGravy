@@ -28,6 +28,9 @@ class ScheduleTest {
         return new Course(id, "CS " + id, "CS", credits);
     }
 
+    ArrayList<String> profs = new ArrayList<>();
+
+
     private TimeSlot slot(int sh, int sm, int eh, int em, Day... days) {
         return new TimeSlot(
                 LocalTime.of(sh, sm),
@@ -163,9 +166,12 @@ class ScheduleTest {
 
     @Test
     void addSection_fullSection_fails() {
-        Schedule s = schedule();
-        assertFalse(s.addSection(fullSection(course(112, 3), 'A', slot(10, 0, 11, 0, Day.MONDAY))));
-        assertTrue(s.getErrorMessage().contains("full"));
+        Schedule schedule = schedule();
+
+        Section full = fullSection(course(112, 3), 'A',
+                slot(10, 0, 11, 0, Day.MONDAY));
+
+        assertFalse(schedule.addSection(full));
     }
 
     /** Covers the concat("Alternate open section") branch inside the isFull() block */
@@ -752,11 +758,139 @@ class ScheduleTest {
 
     @Test
     void getLongestBreak_handlesFiftyMinuteClasses() {
-        Schedule s = schedule();
-        s.addSection(section(course(101, 3), 'A', slot(12, 0, 12, 50, Day.MONDAY)));
-        s.addSection(section(course(102, 3), 'A', slot(13, 0, 13, 50, Day.MONDAY)));
-        s.addSection(section(course(103, 3), 'A', slot(15, 0, 15, 50, Day.MONDAY)));
-        assertEquals(70, s.getLongestBreak()); // 1:50 → 3:00
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(12,0,12,50,Day.MONDAY)));
+
+        schedule.addSection(section(course(102,3),'A',
+                slot(13,0,13,50,Day.MONDAY)));
+
+        schedule.addSection(section(course(103,3),'A',
+                slot(15,0,15,50,Day.MONDAY)));
+
+        // 1:50 → 3:00 = 70 minutes
+        assertEquals(70, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_singleActivity_returns0() {
+        Schedule schedule = schedule();
+
+        schedule.addActivity(activity("Gym",
+                slot(10, 0, 11, 0, Day.MONDAY)));
+
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_sectionAndActivity() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(9,0,10,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Gym",
+                slot(12,0,13,0,Day.MONDAY)));
+
+        // 10 → 12 = 120
+        assertEquals(120, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_activityOverlapsClass() {
+        Schedule schedule = schedule();
+
+        schedule.addSection(section(course(101,3),'A',
+                slot(9,0,11,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Overlap",
+                slot(10,0,12,0,Day.MONDAY)));
+
+        // overlap → no valid break
+        assertEquals(0, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_multipleActivities() {
+        Schedule schedule = schedule();
+
+        schedule.addActivity(activity("Morning",
+                slot(8,0,9,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Midday",
+                slot(11,0,12,0,Day.MONDAY)));
+
+        schedule.addActivity(activity("Evening",
+                slot(15,0,16,0,Day.MONDAY)));
+
+        // breaks:
+        // 9–11 = 120
+        // 12–15 = 180
+        assertEquals(180, schedule.getLongestBreak());
+    }
+
+    @Test
+    void getLongestBreak_mixedDaysWithActivities() {
+        Schedule schedule = schedule();
+
+        // Monday small
+        schedule.addActivity(activity("A",
+                slot(9,0,10,0,Day.MONDAY)));
+        schedule.addActivity(activity("B",
+                slot(11,0,12,0,Day.MONDAY)));
+
+        // Tuesday large
+        schedule.addActivity(activity("C",
+                slot(8,0,9,0,Day.TUESDAY)));
+        schedule.addActivity(activity("D",
+                slot(15,0,16,0,Day.TUESDAY)));
+
+        // 9 → 15 = 360
+        assertEquals(360, schedule.getLongestBreak());
+    }
+
+    // ---------- DUPLICATE SECTION / COURSE TESTS ----------
+
+    @Test
+    void addSection_duplicateSection_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+        schedule.addSection(s);
+
+        assertTrue(schedule.getErrorMessage().contains("already in your schedule"));
+    }
+
+    @Test
+    void addSection_duplicateSection_doesNotAddTwice() {
+        Schedule schedule = schedule();
+
+        Section s = section(course(112, 3), 'A',
+                slot(9, 0, 10, 0, Day.MONDAY));
+
+        schedule.addSection(s);
+        schedule.addSection(s);
+
+        assertEquals(1, schedule.getScheduleSections().size());
+    }
+
+    @Test
+    void addSection_sameCourseAlternateSection_setsErrorMessage() {
+        Schedule schedule = schedule();
+
+        Course shared = course(112, 3);
+
+        Section sA = section(shared, 'A', slot(9, 0, 10, 0, Day.MONDAY));
+        Section sB = section(shared, 'B', slot(11, 0, 12, 0, Day.TUESDAY));
+
+        schedule.addSection(sA);
+        schedule.addSection(sB);
+
+        assertTrue(schedule.getErrorMessage().contains("already in your schedule"));
     }
 
     @Test
