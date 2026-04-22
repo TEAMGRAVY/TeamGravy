@@ -7,7 +7,6 @@ const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
 };
 
-// Converts "12:00" to "12:00 PM"
 function formatTime(t) {
   if (!t) return "";
   const [h, m] = t.split(":").map(Number);
@@ -15,7 +14,6 @@ function formatTime(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
-// Returns the days a section meets, sorted Mon-Fri
 function sectionDays(section) {
   const allDays = section.time.flatMap(slot => slot.days);
   const unique = [...new Set(allDays)];
@@ -23,7 +21,6 @@ function sectionDays(section) {
   return unique.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 }
 
-// Builds a time string like "Mon/Wed 10:00 AM–10:50 AM"
 export function sectionTimeStr(section) {
   if (!section.time || section.time.length === 0) return "No schedule";
   const slot = section.time[0];
@@ -31,18 +28,15 @@ export function sectionTimeStr(section) {
   return `${days} ${formatTime(slot.startTime)}–${formatTime(slot.endTime)}`;
 }
 
-// Builds the URL used to add/remove a section from the schedule
 function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
 export default function App() {
-    // Dropdown options populated from /courses on load
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
   const [terms,       setTerms]       = useState([]);
 
-    // Filter state maps to query param sent to /search
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
   const [dept,     setDept]     = useState("");
@@ -53,23 +47,19 @@ export default function App() {
   const [term,     setTerm]     = useState("");
   const [days,     setDays]     = useState([]);
 
-    // Search results returned from /search
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
 
-    // Schedule state (sections + metrics from schedule)
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
-// Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   }
 
-// Load dropdown options from /courses and fetch the current schedule
   useEffect(() => {
     fetch("/courses")
       .then(r => r.json())
@@ -82,8 +72,6 @@ export default function App() {
     loadSchedule();
   }, []);
 
-// Search — fires 300ms after the user stops changing any filter
-// If nothing is filled in, clears results instead of searching
   useEffect(() => {
     const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length;
     if (!hasInput) { setResults([]); setSearched(false); return; }
@@ -106,11 +94,9 @@ export default function App() {
       setSearched(true);
     }, 300);
 
-    // Cancel the previous timer if the user types again before 300ms
     return () => clearTimeout(timer);
   }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days]);
 
-// Clears all filters and results
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
     setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
@@ -144,8 +130,6 @@ export default function App() {
     loadSchedule();
   }
 
-// Sends a POST to add a section to the schedule
-// If the backend rejects it, shows error
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
@@ -157,21 +141,20 @@ export default function App() {
     }
   }
 
-// Sends a DELETE to remove a section from the schedule
   async function removeFromSchedule(s) {
     await fetch(scheduleUrl(s), { method: "DELETE" });
     setSchedMsg("");
     loadSchedule();
   }
 
-// Set of IDs for sections currently in the schedule, used to show Add vs Remove
-// Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
     schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
   );
 
+  const scheduledTitles = new Set(
+    schedule.sections.map(s => s.course.title)
+  );
 
-// NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
     <div>
       <nav className="nav">
@@ -192,7 +175,6 @@ export default function App() {
         <Route path="/" element={
           <div className="page">
 
-            {/* ── Filters ── */}
             <aside className="filters">
               <label>Course Code
                 <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP 350" />
@@ -200,35 +182,44 @@ export default function App() {
               <label>Keyword
                 <input value={keyQ} onChange={e => setKeyQ(e.target.value)} placeholder="e.g. programming" />
               </label>
+
               <hr className="filter-divider" />
+
               <label>Department
                 <select value={dept} onChange={e => setDept(e.target.value)}>
                   <option value="">All</option>
                   {departments.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </label>
+
               <label>Professor
                 <select value={prof} onChange={e => setProf(e.target.value)}>
                   <option value="">All</option>
                   {professors.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </label>
+
               <label>Term
                 <select value={term} onChange={e => setTerm(e.target.value)}>
                   <option value="">All</option>
                   {terms.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
                 </select>
               </label>
+
               <label>Credits
                 <input value={credits} onChange={e => setCredits(e.target.value)} placeholder="e.g. 3" />
               </label>
+
               <label>From
                 <input value={timeFrom} onChange={e => setTimeFrom(e.target.value)} placeholder="e.g. 8:00 AM" />
               </label>
+
               <label>To
                 <input value={timeTo} onChange={e => setTimeTo(e.target.value)} placeholder="e.g. 5:00 PM" />
               </label>
+
               <hr className="filter-divider" />
+
               <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Days</div>
               <div className="day-checks">
                 {Object.entries(DAY_LABELS).map(([day, label]) => (
@@ -238,41 +229,57 @@ export default function App() {
                   </label>
                 ))}
               </div>
+
               <button className="btn-reset" onClick={reset}>Reset</button>
             </aside>
 
-            {/* ── Results ── */}
             <section className="results">
               <div className="results-header">
                 {searched ? `${results.length} result${results.length !== 1 ? "s" : ""}` : "Search or filter to see courses"}
               </div>
+
               <div className="results-list">
                 {results.map((s, i) => {
                   const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
                   const inSchedule = scheduleIds.has(id);
+                  const sameTitle = scheduledTitles.has(s.course.title);
+
                   return (
-                    <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}>
+                    <div
+                      key={i}
+                      className={`result-item ${s.isOpen ? "" : "is-closed"} ${sameTitle ? "same-title" : ""}`}
+                      title={sameTitle ? "Another section of this class is already in schedule" : ""}
+                    >
                       <div className="result-main">
                         <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.course.term}</div>
                         <div className="result-name">{s.course.title}</div>
                         <div className="result-meta">{s.professor[0] ?? "TBA"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
                       </div>
-                      <button
-                        className={inSchedule ? "btn-remove" : "btn-add"}
-                        onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}
-                      >
-                        {inSchedule ? "Remove" : "Add"}
-                      </button>
+
+                      {inSchedule ? (
+                        <button className="btn-remove" onClick={() => removeFromSchedule(s)}>
+                          Remove
+                        </button>
+                      ) : !s.isOpen ? (
+                        <button className="btn-remove" onClick={() => addToSchedule(s)}>
+                          Closed
+                        </button>
+                      ) : (
+                        <button className="btn-add" onClick={() => addToSchedule(s)}>
+                          Add
+                        </button>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </section>
 
-            {/* ── Schedule ── */}
             <aside className="schedule-panel">
               <h2>My Schedule</h2>
+
               {schedMsg && <div className="error-msg">{schedMsg}</div>}
+
               <div className="schedule-items">
                 {schedule.sections.map((s, i) => (
                   <div key={i} className="sched-item">
@@ -285,6 +292,7 @@ export default function App() {
                   </div>
                 ))}
               </div>
+
               <div className="metrics">
                 <div className="metric-row"><span>Total credits</span><span>{schedule.totalCredits}</span></div>
                 <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
@@ -294,6 +302,7 @@ export default function App() {
 
           </div>
         } />
+
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
     </div>

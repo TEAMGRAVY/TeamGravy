@@ -358,3 +358,25 @@ body {
 }
 
 .sched-bar button:hover { border-color: var(--accent); color: var(--accent); }
+
+.result-item.same-title {
+  opacity: 0.4;
+}
+
+.btn-closed {
+  background: var(--red);
+  border: 1px solid var(--red);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 3px 9px;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-closed:hover {
+  background: #ff4b4b;
+}
