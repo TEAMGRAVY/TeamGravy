@@ -178,7 +178,7 @@ export default function App() {
     }
   }
 
-  // --- COMMIT 3: undo the last add from inside the credit warning modal.
+  // --- Undo the last add from inside the credit warning modal.
   // Calls the same DELETE endpoint that removeFromSchedule uses, then
   // reloads the schedule and closes the modal. lastAdded is cleared so
   // a stale value can never be accidentally re-used by a later modal open.
