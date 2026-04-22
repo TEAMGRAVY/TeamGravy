@@ -63,7 +63,7 @@ export default function App() {
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
-  // --- COMMIT 1: Modal state shell ---
+  // ------- Modal state shell ---------
   // creditWarning controls whether the modal is visible.
   // lastAdded will hold the section that triggered it (wired up in Commit 2).
   const [creditWarning, setCreditWarning] = useState(false);
@@ -157,7 +157,7 @@ export default function App() {
 
   // Sends a POST to add a section to the schedule.
   // If the backend rejects it, shows the existing error message.
-  // --- COMMIT 2: after a successful add, fetch the updated schedule
+  // ------- After a successful add, fetch the updated schedule
   // immediately so we have the real new totalCredits. If it exceeds
   // 18 we store the section that was just added and open the modal.
   // The modal's "Undo add" button is visible but not yet functional
