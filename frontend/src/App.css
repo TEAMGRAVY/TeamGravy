@@ -463,71 +463,95 @@ body {
   color: #000;
 }
 
-/* ── Calendar Grid ── */
-.calendar-grid-wrapper {
-  overflow-x: auto;
-  margin-top: 10px;
-}
-
-.calendar-grid {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 600px;
-}
-
-.calendar-grid th {
-  background: var(--surface);
+/* ── Layout ── */
+.calendar {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
-  padding: 6px 10px;
-  font-size: 0.72rem;
-  font-weight: 600;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Header */
+.calendar-header {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+
+  height: 10vh;
+  overflow-y: auto;
+}
+
+.day-col-header {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 0.75rem;
   color: var(--sub);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: center;
 }
 
-.calendar-grid td {
-  border: 1px solid var(--border);
-  min-width: 100px;
-  height: 24px;
+/* Body */
+.calendar-body {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  height: 75vh;
+  overflow-y: auto;
 }
 
-.calendar-grid .time-label {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  color: var(--sub);
-  padding: 0 6px;
-  white-space: nowrap;
-  vertical-align: top;
+/* Time column */
+.time-column {
+  border-right: 1px solid var(--border);
+}
+
+.time-slot {
+  height: 32px;   /* was 60px */
+  font-size: 0.58rem;
+}
+
+.grid-line {
+  height: 32px;   /* match time-slot */
+}
+
+/* Day columns */
+.day-column {
   position: relative;
-  top: -10px;
-  border: none;
-  width: 60px;
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-.calendar-grid .class-cell {
-  background: #a81b1b;
-  border: 1px solid #c42222;
-  padding: 6px 8px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #fff;
-  text-align: center;
-  vertical-align: middle;
-  border-radius: 3px;
+
+/* Events */
+.event {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    border-radius: 8px;
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    color: white;
+    overflow: hidden;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
 }
 
-.calendar-grid .activity-cell {
-  background: #1b5ea8;
-  border: 1px solid #2272c4;
-  padding: 6px 8px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #fff;
-  text-align: center;
-  vertical-align: middle;
-  border-radius: 3px;
+.event:hover {
+  transform: translateY(-2px);
+}
+
+/* Class vs activity colors */
+.event.class {
+  background: linear-gradient(135deg, #ff5f6d, #c81d25);
+}
+
+.event.activity {
+  background: linear-gradient(135deg, #4a9eff, #1b5ea8);
 }
 
 /* ── Calendar schedule list (more compact than search panel) ── */
