@@ -63,21 +63,18 @@ export default function App() {
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
-  // ------- Modal state shell ---------
-  // creditWarning controls whether the modal is visible.
-  // lastAdded will hold the section that triggered it.
+  // creditWarning controls whether the high credit modal is visible.
+  // lastAdded holds the section that pushed the total over the 18-credit limit.
   const [creditWarning, setCreditWarning] = useState(false);
   const [lastAdded,     setLastAdded]     = useState(null);
-  // ------------------------------------
 
-  // Toggles a day in/out of the days filter array
   // lowCreditWarning controls whether the low credit modal is visible.
   // lastRemoved holds the section that was just deleted and caused the
   // total to cross down through the 12-credit full-time student threshold.
   const [lowCreditWarning, setLowCreditWarning] = useState(false);
   const [lastRemoved,      setLastRemoved]      = useState(null);
 
-// Toggles a day in/out of the days filter array
+  // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
@@ -163,12 +160,11 @@ export default function App() {
   }
 
   // Sends a POST to add a section to the schedule.
-  // If the backend rejects it, shows the existing error message.
-  // ------- After a successful add, fetch the updated schedule
-  // immediately so we have the real new totalCredits. If it exceeds
-  // 18 we store the section that was just added and open the modal.
-  // The modal's "Undo add" button is visible but not yet functional
-
+  // If the backend rejects it the existing error message is shown.
+  // After a successful add we fetch the updated schedule immediately so
+  // we have the real new totalCredits before deciding whether to warn.
+  // If the total has crossed above 18 we store the section and open the
+  // high credit modal so the student can undo if they added by mistake.
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
@@ -185,10 +181,9 @@ export default function App() {
     }
   }
 
-  // --- Undo the last add from inside the credit warning modal.
-  // Calls the same DELETE endpoint that removeFromSchedule uses, then
-  // reloads the schedule and closes the modal. lastAdded is cleared so
-  // a stale value can never be accidentally re-used by a later modal open.
+  // Removes the last added section by calling the same DELETE endpoint
+  // that removeFromSchedule uses. Once the section is gone, lastAdded is
+  // cleared so a stale value can never be re-used by a later modal open.
   async function undoAdd() {
     if (lastAdded) {
       await fetch(scheduleUrl(lastAdded), { method: "DELETE" });
@@ -198,7 +193,6 @@ export default function App() {
     setCreditWarning(false);
   }
 
-  // Sends a DELETE to remove a section from the schedule
   // Sends a DELETE to remove a section from the schedule.
   // Before deleting we snapshot the current credit total. After the delete
   // we fetch the updated total. If the snapshot was at or above the 12-credit
@@ -371,14 +365,11 @@ export default function App() {
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
 
-      {/* ───── Modal body now shows the real course and credit total ────
-          lastAdded holds the section object, so we can
-          read its department, courseID, and sectionID directly. The live
-          schedule.totalCredits value comes from the fetch in addToSchedule.
-          The ?. (optional chaining) on lastAdded is a safety guard. It
-          ensures nothing crashes during the brief moment the modal is
-          closing and lastAdded is being cleared back to null.
-      ─────────────────────────────────────────────────────────────────── */}
+      {/* High credit warning modal — fires when adding a section pushes the
+          student's total above the 18-credit recommended limit. Red styling
+          signals the more urgent of the two credit warnings. The ?. optional
+          chaining on lastAdded guards the brief render frame while the modal
+          closes and lastAdded is being cleared back to null. */}
       {creditWarning && (
         <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -417,13 +408,12 @@ export default function App() {
         </div>
       )}
 
-
-      {/* Low credit warning modal — mirrors the structure of the high credit
-          modal above. Uses amber styling instead of red to visually separate
-          "dropped too low" from "went too high", since these are meaningfully
-          different situations for the student. Clicking the overlay dismisses
-          it and keeps the removal, same behaviour as the high credit modal.
-          The undo function and dynamic course text are added in the next commit. */}
+      {/* Low credit warning modal — uses amber styling instead of red to
+          visually separate "dropped too low" from "went too high". Only
+          fires when the student actively crosses down through 12 credits,
+          so building a new schedule from scratch never triggers it. The ?.
+          optional chaining on lastRemoved guards the same brief closing
+          frame described above. */}
       {lowCreditWarning && (
         <div className="modal-overlay" onClick={() => setLowCreditWarning(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -439,9 +429,6 @@ export default function App() {
               <span className="modal-title">Below full-time credit minimum</span>
             </div>
 
-            {/* The ?. optional chaining on lastRemoved guards against the brief
-                render frame where the modal is closing and lastRemoved is
-                being cleared back to null — without it React would crash. */}
             <p className="modal-body">
               Removing{" "}
               <span className="modal-course">
