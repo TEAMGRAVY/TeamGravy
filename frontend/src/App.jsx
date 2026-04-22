@@ -63,6 +63,12 @@ export default function App() {
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
+  // lowCreditWarning controls whether the low credit modal is visible.
+  // lastRemoved holds the section that was just deleted and caused the
+  // total to cross down through the 12-credit full-time student threshold.
+  const [lowCreditWarning, setLowCreditWarning] = useState(false);
+  const [lastRemoved,      setLastRemoved]      = useState(null);
+
 // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
@@ -161,11 +167,23 @@ export default function App() {
     }
   }
 
-// Sends a DELETE to remove a section from the schedule
+  // Sends a DELETE to remove a section from the schedule.
+  // Before deleting we snapshot the current credit total. After the delete
+  // we fetch the updated total. If the snapshot was at or above the 12-credit
+  // full-time threshold and the new total has dropped below it, we store the
+  // removed section and open the low credit warning modal. This means the
+  // warning only fires when the student actively crosses down through 12 —
+  // building a new schedule from scratch will never trigger it.
   async function removeFromSchedule(s) {
+    const creditsBefore = schedule.totalCredits;
     await fetch(scheduleUrl(s), { method: "DELETE" });
     setSchedMsg("");
-    loadSchedule();
+    const updated = await fetch("/schedule").then(r => r.json());
+    setSchedule(updated);
+    if (creditsBefore >= 12 && updated.totalCredits < 12) {
+      setLastRemoved(s);
+      setLowCreditWarning(true);
+    }
   }
 
 // Set of IDs for sections currently in the schedule, used to show Add vs Remove
@@ -308,6 +326,47 @@ export default function App() {
         } />
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
+
+      {/* Low credit warning modal — mirrors the structure of the high credit
+          modal above. Uses amber styling instead of red to visually separate
+          "dropped too low" from "went too high", since these are meaningfully
+          different situations for the student. Clicking the overlay dismisses
+          it and keeps the removal, same behaviour as the high credit modal.
+          The undo function and dynamic course text are added in the next commit. */}
+      {lowCreditWarning && (
+        <div className="modal-overlay" onClick={() => setLowCreditWarning(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+            <div className="modal-header">
+              <div className="modal-icon modal-icon--warn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L14.9 14H1.1L8 2Z" stroke="var(--yellow)" strokeWidth="1.4"/>
+                  <line x1="8" y1="7" x2="8" y2="10" stroke="var(--yellow)" strokeWidth="1.5"/>
+                  <circle cx="8" cy="12" r="0.7" fill="var(--yellow)"/>
+                </svg>
+              </div>
+              <span className="modal-title">Below full-time credit minimum</span>
+            </div>
+
+            <p className="modal-body">
+              Removing this course drops you below the 12-credit minimum
+              required to be a full-time student. You can restore it or
+              continue with the removal.
+            </p>
+
+            <div className="modal-actions">
+              <button className="btn-modal-keep" onClick={() => setLowCreditWarning(false)}>
+                Keep removal
+              </button>
+              <button className="btn-modal-restore">
+                Undo remove
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

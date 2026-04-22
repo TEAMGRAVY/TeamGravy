@@ -13,6 +13,8 @@
   --accent:   #4a9eff;
   --green:    #3ecf8e;
   --red:      #f06b6b;
+  --yellow:   #f0c14b;
+  --yellow:   #f0c14b;
   --mono:     'JetBrains Mono', monospace;
   --sans:     'Inter', sans-serif;
 }
@@ -538,3 +540,216 @@ body {
 .calendar-schedule .sched-name {
   display: none;
 }
+
+/* ── Credit warning modal ──────────────────────────────────────
+   Overlay and box shell only — no trigger logic yet.
+   position: fixed places it above all page content.
+─────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 26px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(240, 107, 107, 0.1);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Amber variant used for the low credit warning — same shape as the red
+   icon but visually distinct so the student can tell at a glance whether
+   they have gone too high or dropped too low. */
+.modal-icon--warn {
+  background: rgba(240, 193, 75, 0.1);
+  border-color: var(--yellow);
+}
+
+.modal-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-body {
+  font-size: 0.75rem;
+  color: var(--sub);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-course {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.modal-credits {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-modal-keep {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
+
+.btn-modal-undo {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-undo:hover { background: var(--red); color: #fff; }
+
+/* ── Credit warning modals ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 26px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(240, 107, 107, 0.1);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Amber variant used for the low credit warning — same shape as the red
+   icon but visually distinct so the student can tell at a glance whether
+   they have gone too high or dropped too low. */
+.modal-icon--warn {
+  background: rgba(240, 193, 75, 0.1);
+  border-color: var(--yellow);
+}
+
+.modal-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-body {
+  font-size: 0.75rem;
+  color: var(--sub);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-course {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.modal-credits {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-modal-keep {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
+
+.btn-modal-restore {
+  background: transparent;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-restore:hover { background: var(--yellow); color: #000; }
