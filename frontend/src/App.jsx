@@ -32,10 +32,43 @@ function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
 }
 
+// Converts "Wolfe, Britton D." to { first: "britton", last: "wolfe" }
+// so it can be matched against RMP's firstName/lastName fields
+function parseProfName(name) {
+  if (!name) return null;
+  const parts = name.split(",");
+  if (parts.length < 2) return null;
+  const last  = parts[0].trim().toLowerCase();
+  const first = parts[1].trim().split(" ")[0].toLowerCase(); // drop middle initial
+  return { first, last };
+}
+
+// Builds a lookup map from the RMP data keyed on "firstname_lastname"
+// so we can find a professor's rating in O(1)
+function buildRmpMap(rmpData) {
+  const map = {};
+  for (const entry of rmpData) {
+    const node = entry.node;
+    if (!node) continue;
+    const first = node.firstName.trim().toLowerCase();
+    const last  = node.lastName.trim().toLowerCase();
+    map[`${first}_${last}`] = node;
+  }
+  return map;
+}
+
+// Returns a color for the rating badge: green > 3.5, yellow > 2.5, red otherwise
+function ratingColor(rating) {
+  if (rating >= 3.5) return "var(--green)";
+  if (rating >= 2.5) return "#e8c547";
+  return "var(--red)";
+}
+
 export default function App() {
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
   const [terms,       setTerms]       = useState([]);
+  const [rmpMap,      setRmpMap]      = useState({});  // RMP lookup map
 
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
@@ -69,6 +102,13 @@ export default function App() {
         setProfessors([...new Set(raw.flatMap(c => c.faculty))].sort());
         setTerms([...new Set(raw.map(c => c.semester).filter(Boolean))].sort().reverse());
       });
+
+    // Load RMP data and build the lookup map
+    fetch("/professors")
+      .then(r => r.json())
+      .then(data => setRmpMap(buildRmpMap(data)))
+      .catch(() => {}); // silently ignore if professors.json isn't ready yet
+
     loadSchedule();
   }, []);
 
@@ -242,7 +282,11 @@ export default function App() {
                 {results.map((s, i) => {
                   const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
                   const inSchedule = scheduleIds.has(id);
-                  const sameTitle = scheduledTitles.has(s.course.title);
+                  const sameTitle  = scheduledTitles.has(s.course.title);
+
+                  // Look up RMP rating for the first professor on this section
+                  const parsed = parseProfName(s.professor[0]);
+                  const rmp = parsed ? rmpMap[`${parsed.first}_${parsed.last}`] : null;
 
                   return (
                     <div
@@ -253,21 +297,32 @@ export default function App() {
                       <div className="result-main">
                         <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.course.term}</div>
                         <div className="result-name">{s.course.title}</div>
-                        <div className="result-meta">{s.professor[0] ?? "TBA"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
+                        <div className="result-meta">
+                          {s.professor[0] ?? "TBA"}
+                          {/* Show RMP rating inline if we found a match */}
+                          {rmp && (
+                            <span style={{
+                              marginLeft: "6px",
+                              fontFamily: "var(--mono)",
+                              fontSize: "0.62rem",
+                              color: ratingColor(rmp.avgRating),
+                              border: `1px solid ${ratingColor(rmp.avgRating)}`,
+                              borderRadius: "3px",
+                              padding: "1px 5px"
+                            }}>
+                              ★ {rmp.avgRating.toFixed(1)} · {rmp.numRatings} ratings
+                            </span>
+                          )}
+                          {" · "}{sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}
+                        </div>
                       </div>
 
                       {inSchedule ? (
-                        <button className="btn-remove" onClick={() => removeFromSchedule(s)}>
-                          Remove
-                        </button>
+                        <button className="btn-remove" onClick={() => removeFromSchedule(s)}>Remove</button>
                       ) : !s.isOpen ? (
-                        <button className="btn-remove" onClick={() => addToSchedule(s)}>
-                          Closed
-                        </button>
+                        <button className="btn-remove" onClick={() => addToSchedule(s)}>Closed</button>
                       ) : (
-                        <button className="btn-add" onClick={() => addToSchedule(s)}>
-                          Add
-                        </button>
+                        <button className="btn-add" onClick={() => addToSchedule(s)}>Add</button>
                       )}
                     </div>
                   );

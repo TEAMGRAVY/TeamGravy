@@ -11,6 +11,12 @@ public class Main {
 
     public static void run() {
         // Read in JSON file to store all sections.
+        try {
+            RateMyProfessorClient rmp = new RateMyProfessorClient();
+            rmp.exportAllProfessorsToJson("professors.json");
+        } catch (Exception e) {
+            System.out.println("RMP fetch failed: " + e.getMessage());
+        }
         allSections = (new JSONReader()).readJSON();
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("public");
