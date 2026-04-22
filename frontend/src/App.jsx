@@ -339,7 +339,7 @@ export default function App() {
       </Routes>
 
       {/* ───── Modal body now shows the real course and credit total ────
-          lastAdded holds the section object stored in Commit 2, so we can
+          lastAdded holds the section object, so we can
           read its department, courseID, and sectionID directly. The live
           schedule.totalCredits value comes from the fetch in addToSchedule.
           The ?. (optional chaining) on lastAdded is a safety guard. It
