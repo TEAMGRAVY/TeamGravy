@@ -4,16 +4,21 @@ import okhttp3.*;
 
 public class SupabaseService {
 
-    private static final String BASE_URL = "https://<project>.supabase.co/rest/v1";
-    private static final String API_KEY = "YOUR_ANON_KEY";
+    private final OkHttpClient client;
+    private final String baseUrl;
+    private final String apiKey;
 
-    private final OkHttpClient client = new OkHttpClient();
+    public SupabaseService(OkHttpClient client, String baseUrl, String apiKey) {
+        this.client = client;
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+    }
 
     public String getProfile(String userId, String jwt) throws Exception {
         Request request = new Request.Builder()
-                .url(BASE_URL + "/profiles?id=eq." + userId)
-                .addHeader("apikey", API_KEY)
-                .addHeader("Authorization", "Bearer " + jwt)
+                .url(baseUrl + "/profiles?id=eq." + userId)
+                .addHeader("apikey", apiKey)
+                //.addHeader("Authorization", "Bearer " + jwt)
                 .build();
 
         Response response = client.newCall(request).execute();
@@ -25,9 +30,9 @@ public class SupabaseService {
                 json, MediaType.get("application/json"));
 
         Request request = new Request.Builder()
-                .url(BASE_URL + "/profiles?id=eq." + userId)
+                .url(baseUrl + "/profiles?id=eq." + userId)
                 .patch(body)
-                .addHeader("apikey", API_KEY)
+                .addHeader("apikey", apiKey)
                 .addHeader("Authorization", "Bearer " + jwt)
                 .build();
 
