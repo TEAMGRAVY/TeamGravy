@@ -74,6 +74,9 @@ export default function App() {
   const [lowCreditWarning, setLowCreditWarning] = useState(false);
   const [lastRemoved,      setLastRemoved]      = useState(null);
 
+  // Show section details
+  const [selectedSection, setSelectedSection] = useState(null);
+
   // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
@@ -319,18 +322,24 @@ export default function App() {
                   const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
                   return (
-                    <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}>
+                    <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}
+                        //onClick={() => setSelectedSection(s)}
+                        //style={{ cursor: "pointer" }}
+                    >
                       <div className="result-main">
                         <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
                         <div className="result-name">{s.course.title}</div>
-                        <div className="result-meta">{s.professor[0] ?? "TBA"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
+                        <div className="result-meta">{s.professor[0] ?? "TBD"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
+                        <button className="btn-details" onClick={() => setSelectedSection(s)}>
+                            Show Details
+                        </button>
                       </div>
-                      <button
-                        className={inSchedule ? "btn-remove" : "btn-add"}
-                        onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}
-                      >
-                        {inSchedule ? "Remove" : "Add"}
-                      </button>
+                          <button
+                            className={inSchedule ? "btn-remove" : "btn-add"}
+                            onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}
+                          >
+                            {inSchedule ? "Remove" : "Add"}
+                          </button>
                     </div>
                   );
                 })}
@@ -448,6 +457,27 @@ export default function App() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Show section details modal */}
+      {selectedSection && (
+        <div className="modal-overlay" onClick={() => setSelectedSection(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedSection(null)}>✕</button>
+            <div className="modal-header">
+              <span className="modal-title">
+                {selectedSection.course.department} {selectedSection.course.courseID} {selectedSection.sectionID} - {selectedSection.course.title}
+              </span>
+            </div>
+
+            <p>Professor: {selectedSection.professor[0] ?? "TBD"}</p>
+            <p>Location: {selectedSection.location}</p>
+            <p>Enrolled: {selectedSection.enrolled} / {selectedSection.capacity}</p>
+            <p>Credits: {selectedSection.course.creditHours}</p>
+            <p>Status: {selectedSection.isOpen ? "Open" : "Closed"}</p>
+            <p>Time: {sectionTimeStr(selectedSection)}</p>
           </div>
         </div>
       )}

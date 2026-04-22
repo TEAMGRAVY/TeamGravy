@@ -70,7 +70,6 @@ function minutesToLabel(m) {
 
 async function removeFromSchedule(s) {
     await fetch(scheduleUrl(s), { method: "DELETE" });
-    setSchedMsg("");
     loadSchedule();
   }
 
@@ -87,7 +86,7 @@ async function removeActivity(a) {
   //const CALENDAR_HEIGHT = window.innerHeight - 260;
 
   //const PX_PER_MIN = CALENDAR_HEIGHT / TOTAL_MINUTES;
-  const PX_PER_MIN = 0.53;
+  const PX_PER_MIN = 1.1;
   function buildEventsForDay(day) {
     const events = [];
 
@@ -103,7 +102,8 @@ async function removeActivity(a) {
           label: `${section.course.department} ${section.course.courseID}`,
           top: (start - START_DAY) * PX_PER_MIN,
           height: (end - start) * PX_PER_MIN,
-          isActivity: false
+          isActivity: false,
+          section: section
         });
       });
     });
@@ -120,7 +120,8 @@ async function removeActivity(a) {
         label: activity.name,
         top: (start - START_DAY) * PX_PER_MIN,
         height: (end - start) * PX_PER_MIN,
-        isActivity: true
+        isActivity: true,
+        activity: activity
       });
     });
 
@@ -258,8 +259,13 @@ async function removeActivity(a) {
                     top: event.top,
                     height: event.height
                   }}
+                  onClick={() => event.isActivity
+                    ? removeActivity(event.activity)
+                    : removeFromSchedule(event.section)
+                  }
                 >
                   {event.label}
+                  <div className="remove-block">Remove</div>
                 </div>
               ))}
 
