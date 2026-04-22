@@ -338,10 +338,13 @@ export default function App() {
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
 
-      {/* ─────────── Undo add is now fully wired ────────────────────────
-          undoAdd() calls DELETE on lastAdded, reloads the schedule, and
-          closes the modal. Feature is end-to-end functional at this point.
-          Modal body still shows placeholder text.
+      {/* ───── Modal body now shows the real course and credit total ────
+          lastAdded holds the section object stored in Commit 2, so we can
+          read its department, courseID, and sectionID directly. The live
+          schedule.totalCredits value comes from the fetch in addToSchedule.
+          The ?. (optional chaining) on lastAdded is a safety guard. It
+          ensures nothing crashes during the brief moment the modal is
+          closing and lastAdded is being cleared back to null.
       ─────────────────────────────────────────────────────────────────── */}
       {creditWarning && (
         <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
@@ -359,8 +362,13 @@ export default function App() {
             </div>
 
             <p className="modal-body">
-              Adding this course brings your total over the 18-credit recommended
-              limit. You can keep it or undo the add.
+              Adding{" "}
+              <span className="modal-course">
+                {lastAdded?.course.department} {lastAdded?.course.courseID} {lastAdded?.sectionID}
+              </span>{" "}
+              brings your total to{" "}
+              <span className="modal-credits">{schedule.totalCredits} credits</span>,
+              which exceeds the 18-credit recommended limit.
             </p>
 
             <div className="modal-actions">
@@ -375,7 +383,6 @@ export default function App() {
           </div>
         </div>
       )}
-      {/* ── end modal shell ── */}
 
     </div>
   );
