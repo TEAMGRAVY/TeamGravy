@@ -178,6 +178,19 @@ export default function App() {
     }
   }
 
+  // --- COMMIT 3: undo the last add from inside the credit warning modal.
+  // Calls the same DELETE endpoint that removeFromSchedule uses, then
+  // reloads the schedule and closes the modal. lastAdded is cleared so
+  // a stale value can never be accidentally re-used by a later modal open.
+  async function undoAdd() {
+    if (lastAdded) {
+      await fetch(scheduleUrl(lastAdded), { method: "DELETE" });
+      setLastAdded(null);
+      loadSchedule();
+    }
+    setCreditWarning(false);
+  }
+
   // Sends a DELETE to remove a section from the schedule
   async function removeFromSchedule(s) {
     await fetch(scheduleUrl(s), { method: "DELETE" });
@@ -325,10 +338,9 @@ export default function App() {
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
 
-      {/* ──────── Modal now fires from real user interaction ─────────
-          addToSchedule sets creditWarning=true and lastAdded=s whenever
-          the new totalCredits exceeds 18. "Keep it" still just closes.
-          "Undo add" button is visible but has no onClick yet.
+      {/* ─────────── Undo add is now fully wired ────────────────────────
+          undoAdd() calls DELETE on lastAdded, reloads the schedule, and
+          closes the modal. Feature is end-to-end functional at this point.
           Modal body still shows placeholder text.
       ─────────────────────────────────────────────────────────────────── */}
       {creditWarning && (
@@ -355,7 +367,7 @@ export default function App() {
               <button className="btn-modal-keep" onClick={() => setCreditWarning(false)}>
                 Keep it
               </button>
-              <button className="btn-modal-undo">
+              <button className="btn-modal-undo" onClick={undoAdd}>
                 Undo add
               </button>
             </div>
