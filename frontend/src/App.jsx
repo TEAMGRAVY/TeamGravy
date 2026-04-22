@@ -63,11 +63,12 @@ export default function App() {
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
-  // Modal state shell
+  // --- COMMIT 1: Modal state shell ---
   // creditWarning controls whether the modal is visible.
   // lastAdded will hold the section that triggered it (wired up in Commit 2).
   const [creditWarning, setCreditWarning] = useState(false);
   const [lastAdded,     setLastAdded]     = useState(null);
+  // ------------------------------------
 
   // Toggles a day in/out of the days filter array
   function toggleDay(day) {
@@ -154,14 +155,23 @@ export default function App() {
     loadSchedule();
   }
 
-  // Sends a POST to add a section to the schedule
-  // If the backend rejects it, shows error
-  // NOTE: credit check logic will be added in the future
+  // Sends a POST to add a section to the schedule.
+  // If the backend rejects it, shows the existing error message.
+  // --- COMMIT 2: after a successful add, fetch the updated schedule
+  // immediately so we have the real new totalCredits. If it exceeds
+  // 18 we store the section that was just added and open the modal.
+  // The modal's "Undo add" button is visible but not yet functional
+  // (that is wired up in Commit 3).
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
       setSchedMsg("");
-      loadSchedule();
+      const updated = await fetch("/schedule").then(r => r.json());
+      setSchedule(updated);
+      if (updated.totalCredits > 18) {
+        setLastAdded(s);
+        setCreditWarning(true);
+      }
     } else {
       const data = await res.json();
       setSchedMsg(data.error);
@@ -315,12 +325,11 @@ export default function App() {
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
 
-      {/* ────────────── Credit warning modal shell ──────────────────────
-          State is hardwired to false for now — no trigger logic yet.
-          To test the UI during development, temporarily set the initial
-          value of creditWarning to true in the useState call above.
-          "Keep it" closes the modal. "Undo add" is a placeholder stub.
-          Dynamic course name and credit total will be wired in Commit 4.
+      {/* ──────── Modal now fires from real user interaction ─────────
+          addToSchedule sets creditWarning=true and lastAdded=s whenever
+          the new totalCredits exceeds 18. "Keep it" still just closes.
+          "Undo add" button is visible but has no onClick yet.
+          Modal body still shows placeholder text.
       ─────────────────────────────────────────────────────────────────── */}
       {creditWarning && (
         <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
