@@ -19,7 +19,7 @@ const [activityDays, setActivityDays] = useState([]);
 const [activityMsg, setActivityMsg] = useState(""); // Error message handling for activity
 
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
 useEffect(() => {
@@ -70,7 +70,6 @@ function minutesToLabel(m) {
 
 async function removeFromSchedule(s) {
     await fetch(scheduleUrl(s), { method: "DELETE" });
-    setSchedMsg("");
     loadSchedule();
   }
 
@@ -83,66 +82,51 @@ async function removeActivity(a) {
   const END_DAY   = 21.5 * 60;  // 9:30 PM
   const BLOCK = 30; // 30 Minute Blocks
 
-  // Builds the grid for the calendar view
-  function buildGrid() {
+  //const TOTAL_MINUTES = END_DAY - START_DAY;
+  //const CALENDAR_HEIGHT = window.innerHeight - 260;
 
-    const grid = {};
-    DAYS.forEach(d => grid[d] = {});
+  //const PX_PER_MIN = CALENDAR_HEIGHT / TOTAL_MINUTES;
+  const PX_PER_MIN = 1.1;
+  function buildEventsForDay(day) {
+    const events = [];
 
-    if (!schedule.sections) return grid;
-
+    // Sections
     schedule.sections.forEach(section => {
-
-      if (!section.time) return;
-
-      section.time.forEach(slot => {
+      section.time?.forEach(slot => {
+        if (!slot.days.includes(day)) return;
 
         const start = timeToMinutes(slot.startTime);
         const end   = timeToMinutes(slot.endTime);
 
-        // How many blocks does the class span?
-        const span = Math.ceil((end - start) / BLOCK);
-
-        slot.days.forEach(day => {
-
-          grid[day][start] = {
-            span,
-            label: `${section.course.department} ${section.course.courseID}`,
-            isActivity: false
-          };
-
-          // mark rows covered by span so they aren't drawn again
-          for (let t = start + BLOCK; t < end; t += BLOCK) {
-            grid[day][t] = { skip: true };
-          }
-
+        events.push({
+          label: `${section.course.department} ${section.course.courseID}`,
+          top: (start - START_DAY) * PX_PER_MIN,
+          height: (end - start) * PX_PER_MIN,
+          isActivity: false,
+          section: section
         });
-
       });
-
     });
 
-    // Loop through activities - modeled after sections and AI
+    // Activities
     schedule.activities?.forEach(activity => {
-      if (!activity.time) return;
-
       const slot = activity.time;
+      if (!slot.days.includes(day)) return;
+
       const start = timeToMinutes(slot.startTime);
       const end   = timeToMinutes(slot.endTime);
-      const span  = Math.ceil((end - start) / BLOCK);
 
-      slot.days.forEach(day => {
-        grid[day][start] = { span, label: activity.name, isActivity: true };
-        for (let t = start + BLOCK; t < end; t += BLOCK) {
-          grid[day][t] = { skip: true };
-        }
+      events.push({
+        label: activity.name,
+        top: (start - START_DAY) * PX_PER_MIN,
+        height: (end - start) * PX_PER_MIN,
+        isActivity: true,
+        activity: activity
       });
     });
 
-  return grid;
+    return events;
   }
-
-  const grid = buildGrid();
 
   const timeBlocks = [];
   for (let t = START_DAY; t < END_DAY; t += BLOCK) {
@@ -236,64 +220,58 @@ async function removeActivity(a) {
       <hr />
       <br/>
       <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
-      <div className="calendar-grid-wrapper">
-          <table className="calendar-grid">
+      <div className="calendar">
+        {/* Header */}
+        <div className="calendar-header">
+          <div className="time-col"></div>
+          {DAYS.map(d => (
+            <div key={d} className="day-col-header">
+              {DAY_LABELS[d]}
+            </div>
+          ))}
+        </div>
 
-            <thead>
-              <tr>
-                <th style = {{
-                  width: "6%"
-                }}></th>
-                    {DAYS.map(d => (
-                    <th key={d} style={{ width: "18.8%" }}>
-                    {DAY_LABELS[d]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+        <div className="calendar-body">
+          {/* Time labels */}
+          <div className="time-column">
+            {timeBlocks.map(t => (
+              <div key={t} className="time-slot">
+                {minutesToLabel(t)}
+              </div>
+            ))}
+          </div>
 
-            <tbody>
+          {/* Day columns */}
+          {DAYS.map(day => (
+            <div key={day} className="day-column">
 
-              {timeBlocks.map(time => (
-
-                <tr key={time}>
-
-                  <td className="time-label">
-                    {minutesToLabel(time)}
-                  </td>
-
-                  {DAYS.map(day => {
-
-                    const cell = grid[day][time];
-                    if (cell?.skip) {
-                      return <td key={day} style={{display:"none"}}></td>;
-                    }
-
-                    if (cell) {
-                      return (
-                        <td
-                          key={day}
-                          rowSpan={cell.span}
-                          className={cell.isActivity ? "activity-cell" : "class-cell"}
-                        >
-                          {cell.label}
-                        </td>
-                      );
-
-                    }
-
-                    return (
-                      <td key={day} style={{ border: "1px solid #ddd" }}></td>
-                    );
-
-                  })}
-
-                </tr>
-
+              {/* Grid lines */}
+              {timeBlocks.map(t => (
+                <div key={t} className="grid-line" />
               ))}
 
-            </tbody>
-          </table>
+              {/* Events */}
+              {buildEventsForDay(day).map((event, i) => (
+                <div
+                  key={i}
+                  className={event.isActivity ? "event activity" : "event class"}
+                  style={{
+                    top: event.top,
+                    height: event.height
+                  }}
+                  onClick={() => event.isActivity
+                    ? removeActivity(event.activity)
+                    : removeFromSchedule(event.section)
+                  }
+                >
+                  {event.label}
+                  <div className="remove-block">Remove</div>
+                </div>
+              ))}
+
+            </div>
+          ))}
+        </div>
       </div>
       <hr />
 

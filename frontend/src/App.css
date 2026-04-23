@@ -13,6 +13,7 @@
   --accent:   #4a9eff;
   --green:    #3ecf8e;
   --red:      #f06b6b;
+  --yellow:   #f0c14b;
   --mono:     'JetBrains Mono', monospace;
   --sans:     'Inter', sans-serif;
 }
@@ -264,6 +265,8 @@ body {
 
 .btn-remove:hover { background: var(--red); color: #fff; }
 
+
+
 /* ── Schedule panel ── */
 .schedule-panel {
   display: flex;
@@ -463,71 +466,127 @@ body {
   color: #000;
 }
 
-/* ── Calendar Grid ── */
-.calendar-grid-wrapper {
-  overflow-x: auto;
-  margin-top: 10px;
-}
+/* ── Show More Button ── */
 
-.calendar-grid {
-  border-collapse: collapse;
+.btn-details {
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  padding: 2px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  display: block;
+  margin-top: 3px;
+  text-align: center;
   width: 100%;
-  min-width: 600px;
 }
 
-.calendar-grid th {
-  background: var(--surface);
+.btn-details:hover { color: var(--text); }
+
+/* ── Layout ── */
+.calendar {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
-  padding: 6px 10px;
-  font-size: 0.72rem;
-  font-weight: 600;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Header */
+.calendar-header {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+
+  height: 10vh;
+  overflow-y: auto;
+}
+
+.day-col-header {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 0.75rem;
   color: var(--sub);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: center;
 }
 
-.calendar-grid td {
-  border: 1px solid var(--border);
-  min-width: 100px;
-  height: 24px;
+/* Body */
+.calendar-body {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  height: 75vh;
+  overflow-y: auto;
 }
 
-.calendar-grid .time-label {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  color: var(--sub);
-  padding: 0 6px;
-  white-space: nowrap;
-  vertical-align: top;
+/* Time column */
+.time-column {
+  border-right: 1px solid var(--border);
+}
+
+.time-slot {
+  height: 32px;   /* was 60px */
+  font-size: 0.58rem;
+}
+
+.grid-line {
+  height: 32px;   /* match time-slot */
+}
+
+/* Day columns */
+.day-column {
   position: relative;
-  top: -10px;
-  border: none;
-  width: 60px;
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-.calendar-grid .class-cell {
-  background: #a81b1b;
-  border: 1px solid #c42222;
-  padding: 6px 8px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #fff;
-  text-align: center;
-  vertical-align: middle;
-  border-radius: 3px;
+
+/* Events */
+.event {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    text-align: center;
+
+    border-radius: 8px;
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    color: white;
+    overflow: hidden;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
+    cursor: pointer;
 }
 
-.calendar-grid .activity-cell {
-  background: #1b5ea8;
-  border: 1px solid #2272c4;
-  padding: 6px 8px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #fff;
+.event:hover {
+  transform: translateY(-2px);
+}
+
+.event:hover .remove-block {
+  opacity: 1;
+}
+
+.remove-block {
+  font-size: 0.55rem;
+  opacity: 0;
+  transition: opacity 0.15s;
   text-align: center;
-  vertical-align: middle;
-  border-radius: 3px;
+}
+
+/* Class vs activity colors */
+.event.class {
+  background: linear-gradient(135deg, #ff5f6d, #c81d25);
+}
+
+.event.activity {
+  background: linear-gradient(135deg, #4a9eff, #1b5ea8);
 }
 
 /* ── Calendar schedule list (more compact than search panel) ── */
@@ -538,3 +597,143 @@ body {
 .calendar-schedule .sched-name {
   display: none;
 }
+
+/* ── Credit warning modals ───────────────────────────────────────────────
+   Shared styles used by both the high credit (red) and low credit (amber)
+   modals. position: fixed on the overlay places it above all page content.
+   The modal-icon--warn modifier class overrides the icon color for the
+   low credit modal without needing a separate full class definition.
+────────────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 26px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-size: 0.9rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(240, 107, 107, 0.1);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Amber variant for the low credit modal — overrides only the colors,
+   everything else inherits from .modal-icon above. */
+.modal-icon--warn {
+  background: rgba(240, 193, 75, 0.1);
+  border-color: var(--yellow);
+}
+
+.modal-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.modal-body {
+  font-size: 0.75rem;
+  color: var(--sub);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-course {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.modal-credits {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-modal-keep {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
+
+/* Red undo button for the high credit modal */
+.btn-modal-undo {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-undo:hover { background: var(--red); color: #fff; }
+
+/* Amber restore button for the low credit modal */
+.btn-modal-restore {
+  background: transparent;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-restore:hover { background: var(--yellow); color: #000; }
