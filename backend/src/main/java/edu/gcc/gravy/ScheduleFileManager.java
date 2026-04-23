@@ -56,7 +56,7 @@ public class ScheduleFileManager {
         public String name;
         public String term;
         public List<ShortenedSection> sections;
-        //public List<Activity> activities;
+        public List<Activity> activities;
 
         public ScheduleFileFormat(Schedule schedule){
             name = schedule.getScheduleName();
@@ -65,7 +65,7 @@ public class ScheduleFileManager {
             for (Section section : schedule.getScheduleSections()){
                 sections.add(new ShortenedSection(section));
             }
-            //activities = schedule.getScheduleActivities();
+            activities = schedule.getScheduleActivities();
         }
 
         /**
@@ -79,9 +79,13 @@ public class ScheduleFileManager {
             for (ShortenedSection section : sections){
                 schedule.addSection(section.toSection(allSections));
             }
-//            for (Activity activity : activities){
-//                schedule.addActivity(activity);
-//            }
+
+            if (activities != null) {
+                for (Activity activity : activities){
+                    schedule.addActivity(activity);
+                }
+            }
+
             return schedule;
         }
 
