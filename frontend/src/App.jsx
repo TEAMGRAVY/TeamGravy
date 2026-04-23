@@ -254,6 +254,7 @@ export default function App() {
         <button onClick={() => saveSchedule(scheduleName)}>Save</button>
         <button onClick={() => loadSavedSchedule(scheduleName)}>Load</button>
         <button onClick={() => newSchedule()}>New</button>
+        <button onClick={() => window.print()}>Download PDF</button>
       </div>
 
       <Routes>
@@ -378,7 +379,8 @@ export default function App() {
 
           </div>
         } />
-        <Route path="/Calendar" element={<CalendarPage />} />
+
+        <Route path="/Calendar" element={<CalendarPage scheduleName={scheduleName} />} />
       </Routes>
 
       {/* High credit warning modal — fires when adding a section pushes the

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 // Page for calendar view of schedule
-export default function CalendarPage() {
+export default function CalendarPage({ scheduleName }) {
   
 const [schedule, setSchedule] = useState({ sections: [], activities: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
 
@@ -158,6 +158,10 @@ async function removeActivity(a) {
 
     return (
     <div className="calendar-page">
+      <div className="print-header">
+        <h2>{scheduleName ?? "My Schedule"}</h2>
+        <p>Total Credits: {schedule.totalCredits} · Days Without Class: {schedule.daysWithoutClass} · Longest Break: {schedule.longestBreak} min</p>
+      </div>
       <h1 style={{ color: "white" }}>Calendar</h1>
       <h2>Schedule</h2>
       <div className="metrics">
