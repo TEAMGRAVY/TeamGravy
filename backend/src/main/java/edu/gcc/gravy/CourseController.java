@@ -17,8 +17,10 @@ import java.time.format.DateTimeFormatter;
 
 public class CourseController {
 
+
     // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
+    private static Profile profile = null;
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
                     (src, type, context) -> new JsonPrimitive(src.toString()))
@@ -47,7 +49,7 @@ public class CourseController {
         return manager.SaveSchedule(scheduleName, schedule);
     }
 
-    public static void registerRoutes(Javalin app) {
+    public static void registerRoutes(Javalin app, SupabaseService supabase, AuthMiddleware auth) {
 
         app.get("/health", ctx -> ctx.json(Map.of("status", "ok")));
 
@@ -255,11 +257,70 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
-        // POST /schedule/new - Creates a new empty schedule object.
-        app.post("/schedule/new", ctx -> {
-            schedule = new Schedule(null,
-                    "New Schedule",
-                    "2026_Spring");
+        // GET /schedule - Creates a new empty schedule object.
+        app.get("/profile", ctx -> {
+            String username = ctx.queryParam("username");
+            String password = ctx.queryParam("password");
+
+            profile = ProfileFileManager.getInstance().LoadProfile(username, password);
+
+            if (profile == null) {
+                ctx.status(401).json(Map.of("error", "Invalid credentials"));
+            } else {
+                ctx.json(profile);
+            }
+        });
+
+        app.post("/profile/new", ctx -> {
+            try {
+                AuthRequest body = ctx.bodyAsClass(AuthRequest.class);
+
+                String username = body.username;
+                String password = body.password;
+
+                System.out.println("Username: " + username);
+                System.out.println("Password: " + password);
+
+                profile = new Profile(username, password);
+
+                ctx.json(profile);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                ctx.status(500).result("Error: " + e.getMessage());
+            }
+        });
+
+
+        // PATCH /profile/update/{attribute}/{value}
+        app.patch("/profile/update", ctx -> {
+            try {
+                Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
+
+                String attribute = body.get("attribute");
+                String value = body.get("value");
+
+                String result = profile.updateProfile(attribute, value);
+
+                ctx.json(Map.of("result", result));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
+        app.post("/profile/save", ctx -> {
+            try {
+                boolean saveSuccess = ProfileFileManager.getInstance()
+                        .SaveProfile(profile.getName(), profile);
+                if (!saveSuccess) {
+                    ctx.status(404).json(Map.of("error", "Profile not saved"));
+                    return;
+                }
+                ctx.status(204).json(Map.of("success", true));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
 
         app.get("/professors", ctx -> {
