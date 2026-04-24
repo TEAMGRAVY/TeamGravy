@@ -322,5 +322,11 @@ public class CourseController {
                 e.printStackTrace();
             }
         });
+
+        app.get("/professors", ctx -> {
+            String json = Files.readString(Path.of("professors.json").toAbsolutePath());
+            ctx.contentType("application/json");
+            ctx.result(json);
+        });
     }
 }
