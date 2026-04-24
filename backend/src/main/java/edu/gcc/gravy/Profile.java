@@ -11,8 +11,19 @@ public class Profile {
     private String hashedPassword;
     private int gradYear;
     private String major;
+    private String email;
     //private List<Course> coursesTaken;
     private preferences preferences;
+
+    public Profile() {}
+    public Profile(String username, String password) throws NoSuchAlgorithmException {
+        name = username;
+        hashedPassword = HashUtils.sha256(password);
+        this.preferences = new preferences();
+        setPreferences(true, true, true);
+        ProfileFileManager.getInstance().SaveProfile(username, this);
+    }
+
 
     public void setName(String name){
         this.name = name;
@@ -36,6 +47,14 @@ public class Profile {
 
     public int getGradYear(){
         return gradYear;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setHashedPassword(String password) throws NoSuchAlgorithmException {
@@ -81,10 +100,50 @@ public class Profile {
         };
     }
 
+    public String updateProfile(String attribute, String value) {
+        return switch (attribute) {
+            case "name" -> {
+                this.name = value;
+                yield "Success";
+            }
+            case "email" -> {
+                this.email = value;
+                yield "Success";
+            }
+            case "gradYear" -> {
+                this.gradYear = Integer.parseInt(value);
+                yield "Success";
+            }
+            case "major" -> {
+                this.major = value;
+                yield "Success";
+            }
+            default -> preferences.setPreference(attribute, Boolean.parseBoolean(value));
+        };
+    }
+
     private static class preferences {
         public preferences(){}
         public boolean darkMode;
         public boolean longestBreak;
         public boolean showWarnings;
+
+        public String setPreference(String preference, boolean value){
+            return switch (preference) {
+                case "darkMode" -> {
+                    darkMode = value;
+                    yield "Success";
+                }
+                case "longestBreak" -> {
+                    longestBreak = value;
+                    yield "Success";
+                }
+                case "showWarnings" -> {
+                    showWarnings = value;
+                    yield "Success";
+                }
+                default -> "No such property.";
+            };
+        }
     }
 }

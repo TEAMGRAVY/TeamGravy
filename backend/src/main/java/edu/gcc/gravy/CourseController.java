@@ -20,6 +20,7 @@ public class CourseController {
 
     // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
+    private static Profile profile = null;
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
                     (src, type, context) -> new JsonPrimitive(src.toString()))
@@ -256,31 +257,50 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
-        // POST /schedule/new - Creates a new empty schedule object.
-        app.post("/schedule/new", ctx -> {
-            schedule = new Schedule(null,
-                    "New Schedule",
-                    "2026_Spring");
-        });
-
-        app.before("/profile", auth);
-
+        // GET /schedule - Creates a new empty schedule object.
         app.get("/profile", ctx -> {
-            String userId = ctx.attribute("userId");
-            String token = ctx.attribute("token");
+            String username = ctx.queryParam("username");
+            String password = ctx.queryParam("password");
 
-            String profile = supabase.getProfile(userId, token);
-            ctx.result(profile);
+            Profile profile = ProfileFileManager.getInstance().LoadProfile(username, password);
+
+            if (profile == null) {
+                ctx.status(401).json(Map.of("error", "Invalid credentials"));
+            } else {
+                ctx.json(profile);
+            }
         });
 
-        app.patch("/profile", ctx -> {
-            String userId = ctx.attribute("userId");
-            String token = ctx.attribute("token");
+        app.post("/profile/new", ctx -> {
+            try {
+                AuthRequest body = ctx.bodyAsClass(AuthRequest.class);
 
-            String body = ctx.body();
-            String result = supabase.updateProfile(userId, token, body);
+                String username = body.username;
+                String password = body.password;
 
-            ctx.result(result);
+                System.out.println("Username: " + username);
+                System.out.println("Password: " + password);
+
+                profile = new Profile(username, password);
+
+                ctx.json(profile);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                ctx.status(500).result("Error: " + e.getMessage());
+            }
+        });
+
+
+        // PATCH /profile/update/{attribute}/{value}
+        app.patch("/profile/update", ctx -> {
+            Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
+
+            body.forEach((key, value) -> {
+                profile.updateProfile(key, value);
+            });
+
+            ProfileFileManager.getInstance().SaveProfile(profile.getName(), profile);
         });
     }
 }
