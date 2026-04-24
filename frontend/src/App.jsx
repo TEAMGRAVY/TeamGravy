@@ -452,6 +452,21 @@ export default function App() {
                       ) : (
                         <button className="btn-add" onClick={() => addToSchedule(s)}>Add</button>
                       )}
+                    <button
+                      className="btn-save"
+                      onClick={() => toggleSave(s)}
+                      style={{ color: saved.has(id) ? "var(--accent)" : "var(--sub)" }}
+                    >
+                                          {saved.has(id) ? (
+                                            <svg width="12" height="14" viewBox="0 0 12 16" fill="currentColor">
+                                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
+                                            </svg>
+                                          ) : (
+                                            <svg width="12" height="14" viewBox="0 0 12 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
+                                            </svg>
+                                          )}
+                    </button>
                     </div>
                   );
                 })}
