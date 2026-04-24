@@ -737,6 +737,7 @@ body {
 }
 
 .btn-modal-restore:hover { background: var(--yellow); color: #000; }
+.result-item.same-title { opacity: 0.4; }
 
 /* ── Profile (top-right) ── */
 .profile-container {

@@ -241,6 +241,11 @@ export default function App() {
     schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`)
   );
 
+  // Set of course titles currently in the schedule, used to grey out other sections of the same course
+  const scheduledTitles = new Set(
+    schedule.sections.map(s => s.course.title)
+  );
+
   // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
 
@@ -348,10 +353,11 @@ export default function App() {
                 {results.map((s, i) => {
                   const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
+                  const sameTitle = !inSchedule && scheduledTitles.has(s.course.title);
                   return (
-                    <div key={i} className={`result-item ${s.isOpen ? "" : "is-closed"}`}
-                        //onClick={() => setSelectedSection(s)}
-                        //style={{ cursor: "pointer" }}
+                    <div key={i}
+                      className={`result-item ${s.isOpen ? "" : "is-closed"} ${sameTitle ? "same-title" : ""}`}
+                      title={sameTitle ? "Another section of this class is already in your schedule" : ""}
                     >
                       <div className="result-main">
                         <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
@@ -361,12 +367,13 @@ export default function App() {
                             Show Details
                         </button>
                       </div>
-                          <button
-                            className={inSchedule ? "btn-remove" : "btn-add"}
-                            onClick={() => inSchedule ? removeFromSchedule(s) : addToSchedule(s)}
-                          >
-                            {inSchedule ? "Remove" : "Add"}
-                          </button>
+                      {inSchedule ? (
+                        <button className="btn-remove" onClick={() => removeFromSchedule(s)}>Remove</button>
+                      ) : !s.isOpen ? (
+                        <button className="btn-remove" onClick={() => addToSchedule(s)}>Closed</button>
+                      ) : (
+                        <button className="btn-add" onClick={() => addToSchedule(s)}>Add</button>
+                      )}
                     </div>
                   );
                 })}
