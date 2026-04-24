@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link} from "react-router-dom";
 import CalendarPage from "./CalendarPage";
 import "./App.css";
+import ProfileMenu from "./Profile";
+import LoginModal from "./LoginModal"
+import ProfileSettingsModal from "./ProfileSettingsModal"
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -94,6 +97,10 @@ export default function App() {
       localStorage.setItem("savedSections", JSON.stringify([...saved]));
     } catch {}
   }, [saved]);
+
+  // Profile
+  const [user, setUser] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Toggles a day in/out of the days filter array
   function toggleDay(day) {
@@ -269,12 +276,32 @@ export default function App() {
 
   // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
+
     <div>
+
+        {!user && (
+                                <LoginModal onLogin={setUser} />
+                      )}
+
       <nav className="nav">
         <span className="nav-title">TeamGravy</span>
         <Link to="/" onClick={() => loadSchedule()}>Search</Link>
         <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
       </nav>
+
+      <ProfileMenu
+        user={user}
+        onLogout={() => setUser(null)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
+
+      {showSettings && (
+        <ProfileSettingsModal
+          user={user}
+          onClose={() => setShowSettings(false)}
+          onUpdate={setUser}
+        />
+      )}
 
       <div className="sched-bar">
         <span>Schedule:</span>
@@ -376,21 +403,6 @@ export default function App() {
                       ) : (
                         <button className="btn-add" onClick={() => addToSchedule(s)}>Add</button>
                       )}
-                        <button className="btn-save" onClick={() => toggleSave(s)}
-                            style={{ color: saved.has(id) ? "var(--accent)" : "var(--sub)" }}
-                        >
-                          {saved.has(id) ? (
-                            // Filled bookmark (saved)
-                            <svg width="12" height="14" viewBox="0 0 12 16" fill="currentColor">
-                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
-                            </svg>
-                          ) : (
-                            // Outline bookmark (not saved)
-                            <svg width="12" height="14" viewBox="0 0 12 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
-                            </svg>
-                          )}
-                        </button>
                     </div>
                   );
                 })}
