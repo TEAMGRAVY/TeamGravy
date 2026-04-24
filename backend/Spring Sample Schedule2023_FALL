@@ -1,0 +1,20 @@
+{
+  "name": "Spring Sample Schedule",
+  "term": "2023_FALL",
+  "sections": [
+    {
+      "name": "AUDITING",
+      "term": "Fall 2026",
+      "dept": "ACCT",
+      "courseId": 403,
+      "sectionID": "A"
+    },
+    {
+      "name": "LABORATORY",
+      "term": "Fall 2026",
+      "dept": "BIOL",
+      "courseId": 101,
+      "sectionID": "P"
+    }
+  ]
+}

@@ -13,6 +13,7 @@
   --accent:   #4a9eff;
   --green:    #3ecf8e;
   --red:      #f06b6b;
+  --yellow:   #f0c14b;
   --mono:     'JetBrains Mono', monospace;
   --sans:     'Inter', sans-serif;
 }
@@ -142,6 +143,15 @@ body {
   cursor: pointer;
 }
 
+/* Override checkbox checkmark color for visibility */
+.day-checks input[type="checkbox"] {
+  width: auto !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  accent-color: var(--accent);
+  color-scheme: dark;
+}
+
 .filter-divider {
   border: none;
   border-top: 1px solid var(--border);
@@ -255,6 +265,8 @@ body {
 
 .btn-remove:hover { background: var(--red); color: #fff; }
 
+
+
 /* ── Schedule panel ── */
 .schedule-panel {
   display: flex;
@@ -327,7 +339,7 @@ body {
 .metric-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .metric-row span:first-child { color: var(--sub); }
@@ -359,24 +371,370 @@ body {
 
 .sched-bar button:hover { border-color: var(--accent); color: var(--accent); }
 
-.result-item.same-title {
-  opacity: 0.4;
+.custom-activity input,
+.custom-activity select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  padding: 5px 7px;
+  border-radius: 4px;
+  width: 100%;
 }
 
-.btn-closed {
-  background: var(--red);
-  border: 1px solid var(--red);
-  color: #fff;
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  padding: 3px 9px;
-  border-radius: 3px;
+/* ── Calendar Page ── */
+.calendar-page {
+  padding: 20px 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.calendar-page h1 {
+  font-size: 2.0rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.calendar-page h2 {
+  font-size: 1.0rem;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+/* ── Add Activity Form ── */
+.custom-activity {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.custom-activity h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.custom-activity input[type="text"],
+.custom-activity input[type="time"],
+.custom-activity input:not([type="checkbox"]) {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  padding: 5px 7px;
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+}
+
+.custom-activity input:focus {
+  border-color: var(--accent);
+}
+
+.custom-activity button {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  white-space: nowrap;
   transition: all 0.15s;
+  align-self: flex-start;
+  margin: 0 auto;
+}
+
+.custom-activity button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ── Show More Button ── */
+
+.btn-details {
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  padding: 2px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  display: block;
+  margin-top: 3px;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-details:hover { color: var(--text); }
+
+/* ── Layout ── */
+.calendar {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Header */
+.calendar-header {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+
+  height: 10vh;
+  overflow-y: auto;
+}
+
+.day-col-header {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 0.75rem;
+  color: var(--sub);
+  text-transform: uppercase;
+}
+
+/* Body */
+.calendar-body {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  height: 75vh;
+  overflow-y: auto;
+}
+
+/* Time column */
+.time-column {
+  border-right: 1px solid var(--border);
+}
+
+.time-slot {
+  height: 32px;   /* was 60px */
+  font-size: 0.58rem;
+}
+
+.grid-line {
+  height: 32px;   /* match time-slot */
+}
+
+/* Day columns */
+.day-column {
+  position: relative;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+
+/* Events */
+.event {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    text-align: center;
+
+    border-radius: 8px;
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    color: white;
+    overflow: hidden;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease;
+    cursor: pointer;
+}
+
+.event:hover {
+  transform: translateY(-2px);
+}
+
+.event:hover .remove-block {
+  opacity: 1;
+}
+
+.remove-block {
+  font-size: 0.55rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-align: center;
+}
+
+/* Class vs activity colors */
+.event.class {
+  background: linear-gradient(135deg, #ff5f6d, #c81d25);
+}
+
+.event.activity {
+  background: linear-gradient(135deg, #4a9eff, #1b5ea8);
+}
+
+/* ── Calendar schedule list (more compact than search panel) ── */
+.calendar-schedule .sched-item {
+  padding: 4px 8px;
+}
+
+.calendar-schedule .sched-name {
+  display: none;
+}
+
+/* ── Credit warning modals ───────────────────────────────────────────────
+   Shared styles used by both the high credit (red) and low credit (amber)
+   modals. position: fixed on the overlay places it above all page content.
+   The modal-icon--warn modifier class overrides the icon color for the
+   low credit modal without needing a separate full class definition.
+────────────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px 26px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-size: 0.9rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(240, 107, 107, 0.1);
+  border: 1px solid var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.btn-closed:hover {
-  background: #ff4b4b;
+/* Amber variant for the low credit modal — overrides only the colors,
+   everything else inherits from .modal-icon above. */
+.modal-icon--warn {
+  background: rgba(240, 193, 75, 0.1);
+  border-color: var(--yellow);
 }
+
+.modal-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.modal-body {
+  font-size: 0.75rem;
+  color: var(--sub);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-course {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.modal-credits {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-modal-keep {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
+
+/* Red undo button for the high credit modal */
+.btn-modal-undo {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-undo:hover { background: var(--red); color: #fff; }
+
+/* Amber restore button for the low credit modal */
+.btn-modal-restore {
+  background: transparent;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-modal-restore:hover { background: var(--yellow); color: #000; }
+.result-item.same-title { opacity: 0.4; }

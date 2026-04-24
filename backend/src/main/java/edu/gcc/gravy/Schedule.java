@@ -34,15 +34,15 @@ public class Schedule implements Serializable{
 
         errorMessage = null;
 
-        // Prevents adding the exact same course section twice
-        for (Section other : sections) {
+        for (Section other : sections) { // Prevents adding the exact same course section twice
             if (section.equals(other)) {
                 errorMessage = "Section " + section.getCourseCode() + " is already in your schedule.";
                 return false;
+            } else if (section.getCourse().equals(other.getCourse())) { // Prevents adding the exact same course twice
+                errorMessage = "Course " + section.getCourse() + " is already in your schedule.";
+                return false;
             }
         }
-
-        // Next Sprint: disallow adding the same course code twice
 
         if (!section.isOpen()) {
             errorMessage = "Section " + section.getCourseCode() + " is not open.";
@@ -280,6 +280,10 @@ public class Schedule implements Serializable{
                         slots.add(slot);
                     }
                 }
+            }
+
+            for (Activity activity: activities) {
+                if (activity.getTime().getDays().contains(day)) slots.add(activity.getTime());
             }
 
             // Sort slots by start time

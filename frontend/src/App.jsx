@@ -7,6 +7,7 @@ const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
 };
 
+// Converts "12:00" to "12:00 PM"
 function formatTime(t) {
   if (!t) return "";
   const [h, m] = t.split(":").map(Number);
@@ -14,6 +15,7 @@ function formatTime(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+// Returns the days a section meets, sorted Mon-Fri
 function sectionDays(section) {
   const allDays = section.time.flatMap(slot => slot.days);
   const unique = [...new Set(allDays)];
@@ -21,6 +23,7 @@ function sectionDays(section) {
   return unique.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 }
 
+// Builds a time string like "Mon/Wed 10:00 AM–10:50 AM"
 export function sectionTimeStr(section) {
   if (!section.time || section.time.length === 0) return "No schedule";
   const slot = section.time[0];
@@ -28,48 +31,18 @@ export function sectionTimeStr(section) {
   return `${days} ${formatTime(slot.startTime)}–${formatTime(slot.endTime)}`;
 }
 
+// Builds the URL used to add/remove a section from the schedule
 function scheduleUrl(s) {
-  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.course.term}`;
-}
-
-// Converts "Wolfe, Britton D." to { first: "britton", last: "wolfe" }
-// so it can be matched against RMP's firstName/lastName fields
-function parseProfName(name) {
-  if (!name) return null;
-  const parts = name.split(",");
-  if (parts.length < 2) return null;
-  const last  = parts[0].trim().toLowerCase();
-  const first = parts[1].trim().split(" ")[0].toLowerCase(); // drop middle initial
-  return { first, last };
-}
-
-// Builds a lookup map from the RMP data keyed on "firstname_lastname"
-// so we can find a professor's rating in O(1)
-function buildRmpMap(rmpData) {
-  const map = {};
-  for (const entry of rmpData) {
-    const node = entry.node;
-    if (!node) continue;
-    const first = node.firstName.trim().toLowerCase();
-    const last  = node.lastName.trim().toLowerCase();
-    map[`${first}_${last}`] = node;
-  }
-  return map;
-}
-
-// Returns a color for the rating badge: green > 3.5, yellow > 2.5, red otherwise
-function ratingColor(rating) {
-  if (rating >= 3.5) return "var(--green)";
-  if (rating >= 2.5) return "#e8c547";
-  return "var(--red)";
+  return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
 export default function App() {
+  // Dropdown options populated from /courses on load
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
   const [terms,       setTerms]       = useState([]);
-  const [rmpMap,      setRmpMap]      = useState({});  // RMP lookup map
 
+  // Filter state maps to query param sent to /search
   const [codeQ,    setCodeQ]    = useState("");
   const [keyQ,     setKeyQ]     = useState("");
   const [dept,     setDept]     = useState("");
@@ -79,20 +52,39 @@ export default function App() {
   const [timeTo,   setTimeTo]   = useState("");
   const [term,     setTerm]     = useState("");
   const [days,     setDays]     = useState([]);
+  const [isOpen,   setIsOpen]   = useState(false);
 
+  // Search results returned from /search
   const [results,  setResults]  = useState([]);
   const [searched, setSearched] = useState(false);
 
+  // Schedule state (sections + metrics from schedule)
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 
+  // creditWarning controls whether the high credit modal is visible.
+  // lastAdded holds the section that pushed the total over the 18-credit limit.
+  const [creditWarning, setCreditWarning] = useState(false);
+  const [lastAdded,     setLastAdded]     = useState(null);
+
+  // lowCreditWarning controls whether the low credit modal is visible.
+  // lastRemoved holds the section that was just deleted and caused the
+  // total to cross down through the 12-credit full-time student threshold.
+  const [lowCreditWarning, setLowCreditWarning] = useState(false);
+  const [lastRemoved,      setLastRemoved]      = useState(null);
+
+  // Show section details
+  const [selectedSection, setSelectedSection] = useState(null);
+
+  // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   }
 
+  // Load dropdown options from /courses and fetch the current schedule
   useEffect(() => {
     fetch("/courses")
       .then(r => r.json())
@@ -102,18 +94,13 @@ export default function App() {
         setProfessors([...new Set(raw.flatMap(c => c.faculty))].sort());
         setTerms([...new Set(raw.map(c => c.semester).filter(Boolean))].sort().reverse());
       });
-
-    // Load RMP data and build the lookup map
-    fetch("/professors")
-      .then(r => r.json())
-      .then(data => setRmpMap(buildRmpMap(data)))
-      .catch(() => {}); // silently ignore if professors.json isn't ready yet
-
     loadSchedule();
   }, []);
 
+  // Search — fires 300ms after the user stops changing any filter
+  // If nothing is filled in, clears results instead of searching
   useEffect(() => {
-    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length;
+    const hasInput = codeQ || keyQ || dept || prof || credits || timeFrom || timeTo || term || days.length || isOpen;
     if (!hasInput) { setResults([]); setSearched(false); return; }
 
     const timer = setTimeout(async () => {
@@ -127,6 +114,7 @@ export default function App() {
       if (timeTo)      params.set("timeTo",   timeTo);
       if (term)        params.set("term",     term);
       if (days.length) params.set("days",     days.join(","));
+      if (isOpen)      params.set("isOpen",   "true");
 
       const res  = await fetch(`/search?${params}`);
       const data = await res.json();
@@ -134,19 +122,23 @@ export default function App() {
       setSearched(true);
     }, 300);
 
+    // Cancel the previous timer if the user types again before 300ms
     return () => clearTimeout(timer);
-  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days]);
+  }, [codeQ, keyQ, dept, prof, credits, timeFrom, timeTo, term, days, isOpen]);
 
+  // Clears all filters and results
   function reset() {
     setCodeQ(""); setKeyQ(""); setDept(""); setProf("");
     setCredits(""); setTimeFrom(""); setTimeTo(""); setTerm("");
     setDays([]);
+    setIsOpen(false);
     setResults([]); setSearched(false);
   }
 
   async function loadSchedule() {
     const res  = await fetch("/schedule");
     const data = await res.json();
+    console.log(data);
     setSchedule(data);
   }
 
@@ -170,31 +162,84 @@ export default function App() {
     loadSchedule();
   }
 
+  // Sends a POST to add a section to the schedule.
+  // If the backend rejects it the existing error message is shown.
+  // After a successful add we fetch the updated schedule immediately so
+  // we have the real new totalCredits before deciding whether to warn.
+  // If the total has crossed above 18 we store the section and open the
+  // high credit modal so the student can undo if they added by mistake.
   async function addToSchedule(s) {
     const res = await fetch(scheduleUrl(s), { method: "POST" });
     if (res.ok) {
       setSchedMsg("");
-      loadSchedule();
+      const updated = await fetch("/schedule").then(r => r.json());
+      setSchedule(updated);
+      if (updated.totalCredits > 18) {
+        setLastAdded(s);
+        setCreditWarning(true);
+      }
     } else {
       const data = await res.json();
       setSchedMsg(data.error);
     }
   }
 
-  async function removeFromSchedule(s) {
-    await fetch(scheduleUrl(s), { method: "DELETE" });
-    setSchedMsg("");
-    loadSchedule();
+  // Removes the last added section by calling the same DELETE endpoint
+  // that removeFromSchedule uses. Once the section is gone, lastAdded is
+  // cleared so a stale value can never be re-used by a later modal open.
+  async function undoAdd() {
+    if (lastAdded) {
+      await fetch(scheduleUrl(lastAdded), { method: "DELETE" });
+      setLastAdded(null);
+      loadSchedule();
+    }
+    setCreditWarning(false);
   }
 
+  // Sends a DELETE to remove a section from the schedule.
+  // Before deleting we snapshot the current credit total. After the delete
+  // we fetch the updated total. If the snapshot was at or above the 12-credit
+  // full-time threshold and the new total has dropped below it, we store the
+  // removed section and open the low credit warning modal. This means the
+  // warning only fires when the student actively crosses down through 12 —
+  // building a new schedule from scratch will never trigger it.
+  async function removeFromSchedule(s) {
+    const creditsBefore = schedule.totalCredits;
+    await fetch(scheduleUrl(s), { method: "DELETE" });
+    setSchedMsg("");
+    const updated = await fetch("/schedule").then(r => r.json());
+    setSchedule(updated);
+    if (creditsBefore >= 12 && updated.totalCredits < 12) {
+      setLastRemoved(s);
+      setLowCreditWarning(true);
+    }
+  }
+
+  // Restores the last removed section by re-adding it via the same POST
+  // endpoint that addToSchedule uses. Once the section is back in the
+  // schedule, lastRemoved is cleared so a stale value can never be
+  // accidentally re-used if the modal were somehow reopened later.
+  async function undoRemove() {
+    if (lastRemoved) {
+      await fetch(scheduleUrl(lastRemoved), { method: "POST" });
+      setLastRemoved(null);
+      loadSchedule();
+    }
+    setLowCreditWarning(false);
+  }
+
+  // Set of IDs for sections currently in the schedule, used to show Add vs Remove
+  // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
-    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`)
+    schedule.sections.map(s => `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`)
   );
 
+  // Set of course titles currently in the schedule, used to grey out other sections of the same course
   const scheduledTitles = new Set(
     schedule.sections.map(s => s.course.title)
   );
 
+  // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
     <div>
       <nav className="nav">
@@ -215,6 +260,7 @@ export default function App() {
         <Route path="/" element={
           <div className="page">
 
+            {/* ── Filters ── */}
             <aside className="filters">
               <label>Course Code
                 <input value={codeQ} onChange={e => setCodeQ(e.target.value)} placeholder="e.g. COMP 350" />
@@ -222,44 +268,35 @@ export default function App() {
               <label>Keyword
                 <input value={keyQ} onChange={e => setKeyQ(e.target.value)} placeholder="e.g. programming" />
               </label>
-
               <hr className="filter-divider" />
-
               <label>Department
                 <select value={dept} onChange={e => setDept(e.target.value)}>
                   <option value="">All</option>
                   {departments.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </label>
-
               <label>Professor
                 <select value={prof} onChange={e => setProf(e.target.value)}>
                   <option value="">All</option>
                   {professors.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </label>
-
               <label>Term
                 <select value={term} onChange={e => setTerm(e.target.value)}>
                   <option value="">All</option>
                   {terms.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
                 </select>
               </label>
-
               <label>Credits
                 <input value={credits} onChange={e => setCredits(e.target.value)} placeholder="e.g. 3" />
               </label>
-
               <label>From
                 <input value={timeFrom} onChange={e => setTimeFrom(e.target.value)} placeholder="e.g. 8:00 AM" />
               </label>
-
               <label>To
                 <input value={timeTo} onChange={e => setTimeTo(e.target.value)} placeholder="e.g. 5:00 PM" />
               </label>
-
               <hr className="filter-divider" />
-
               <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Days</div>
               <div className="day-checks">
                 {Object.entries(DAY_LABELS).map(([day, label]) => (
@@ -269,54 +306,40 @@ export default function App() {
                   </label>
                 ))}
               </div>
-
+              <hr className="filter-divider" />
+              <div style={{ fontSize: "0.7rem", color: "var(--sub)", marginBottom: "2px" }}>Availability</div>
+              <div className="day-checks">
+                <label>
+                  <input type="checkbox" checked={isOpen} onChange={e => setIsOpen(e.target.checked)} />
+                  Open
+                </label>
+              </div>
               <button className="btn-reset" onClick={reset}>Reset</button>
             </aside>
 
+            {/* ── Results ── */}
             <section className="results">
               <div className="results-header">
                 {searched ? `${results.length} result${results.length !== 1 ? "s" : ""}` : "Search or filter to see courses"}
               </div>
-
               <div className="results-list">
                 {results.map((s, i) => {
-                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.course.term}`;
+                  const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
-                  const sameTitle  = scheduledTitles.has(s.course.title);
-
-                  // Look up RMP rating for the first professor on this section
-                  const parsed = parseProfName(s.professor[0]);
-                  const rmp = parsed ? rmpMap[`${parsed.first}_${parsed.last}`] : null;
-
+                  const sameTitle = !inSchedule && scheduledTitles.has(s.course.title);
                   return (
-                    <div
-                      key={i}
+                    <div key={i}
                       className={`result-item ${s.isOpen ? "" : "is-closed"} ${sameTitle ? "same-title" : ""}`}
-                      title={sameTitle ? "Another section of this class is already in schedule" : ""}
+                      title={sameTitle ? "Another section of this class is already in your schedule" : ""}
                     >
                       <div className="result-main">
-                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.course.term}</div>
+                        <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
                         <div className="result-name">{s.course.title}</div>
-                        <div className="result-meta">
-                          {s.professor[0] ?? "TBA"}
-                          {/* Show RMP rating inline if we found a match */}
-                          {rmp && (
-                            <span style={{
-                              marginLeft: "6px",
-                              fontFamily: "var(--mono)",
-                              fontSize: "0.62rem",
-                              color: ratingColor(rmp.avgRating),
-                              border: `1px solid ${ratingColor(rmp.avgRating)}`,
-                              borderRadius: "3px",
-                              padding: "1px 5px"
-                            }}>
-                              ★ {rmp.avgRating.toFixed(1)} · {rmp.numRatings} ratings
-                            </span>
-                          )}
-                          {" · "}{sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}
-                        </div>
+                        <div className="result-meta">{s.professor[0] ?? "TBD"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
+                        <button className="btn-details" onClick={() => setSelectedSection(s)}>
+                            Show Details
+                        </button>
                       </div>
-
                       {inSchedule ? (
                         <button className="btn-remove" onClick={() => removeFromSchedule(s)}>Remove</button>
                       ) : !s.isOpen ? (
@@ -330,11 +353,10 @@ export default function App() {
               </div>
             </section>
 
+            {/* ── Schedule ── */}
             <aside className="schedule-panel">
               <h2>My Schedule</h2>
-
               {schedMsg && <div className="error-msg">{schedMsg}</div>}
-
               <div className="schedule-items">
                 {schedule.sections.map((s, i) => (
                   <div key={i} className="sched-item">
@@ -347,7 +369,6 @@ export default function App() {
                   </div>
                 ))}
               </div>
-
               <div className="metrics">
                 <div className="metric-row"><span>Total credits</span><span>{schedule.totalCredits}</span></div>
                 <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
@@ -357,9 +378,117 @@ export default function App() {
 
           </div>
         } />
-
         <Route path="/Calendar" element={<CalendarPage />} />
       </Routes>
+
+      {/* High credit warning modal — fires when adding a section pushes the
+          student's total above the 18-credit recommended limit. Red styling
+          signals the more urgent of the two credit warnings. The ?. optional
+          chaining on lastAdded guards the brief render frame while the modal
+          closes and lastAdded is being cleared back to null. */}
+      {creditWarning && (
+        <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+            <div className="modal-header">
+              <div className="modal-icon">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L14.9 14H1.1L8 2Z" stroke="var(--red)" strokeWidth="1.4"/>
+                  <line x1="8" y1="7" x2="8" y2="10" stroke="var(--red)" strokeWidth="1.5"/>
+                  <circle cx="8" cy="12" r="0.7" fill="var(--red)"/>
+                </svg>
+              </div>
+              <span className="modal-title">Exceeds maximum credit hour limit</span>
+            </div>
+
+            <p className="modal-body">
+              Adding{" "}
+              <span className="modal-course">
+                {lastAdded?.course.department} {lastAdded?.course.courseID} {lastAdded?.sectionID}
+              </span>{" "}
+              brings your total to{" "}
+              <span className="modal-credits">{schedule.totalCredits} credits</span>,
+              which exceeds the 18-credit recommended limit.
+            </p>
+
+            <div className="modal-actions">
+              <button className="btn-modal-keep" onClick={() => setCreditWarning(false)}>
+                Keep it
+              </button>
+              <button className="btn-modal-undo" onClick={undoAdd}>
+                Undo add
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Low credit warning modal — uses amber styling instead of red to
+          visually separate "dropped too low" from "went too high". Only
+          fires when the student actively crosses down through 12 credits,
+          so building a new schedule from scratch never triggers it. The ?.
+          optional chaining on lastRemoved guards the same brief closing
+          frame described above. */}
+      {lowCreditWarning && (
+        <div className="modal-overlay" onClick={() => setLowCreditWarning(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+            <div className="modal-header">
+              <div className="modal-icon modal-icon--warn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2L14.9 14H1.1L8 2Z" stroke="var(--yellow)" strokeWidth="1.4"/>
+                  <line x1="8" y1="7" x2="8" y2="10" stroke="var(--yellow)" strokeWidth="1.5"/>
+                  <circle cx="8" cy="12" r="0.7" fill="var(--yellow)"/>
+                </svg>
+              </div>
+              <span className="modal-title">Below full-time credit minimum</span>
+            </div>
+
+            <p className="modal-body">
+              Removing{" "}
+              <span className="modal-course">
+                {lastRemoved?.course.department} {lastRemoved?.course.courseID} {lastRemoved?.sectionID}
+              </span>{" "}
+              brings your total to{" "}
+              <span className="modal-credits">{schedule.totalCredits} credits</span>,
+              which is below the 12-credit minimum required to be a full-time student.
+            </p>
+
+            <div className="modal-actions">
+              <button className="btn-modal-keep" onClick={() => setLowCreditWarning(false)}>
+                Keep removal
+              </button>
+              <button className="btn-modal-restore" onClick={undoRemove}>
+                Undo remove
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Show section details modal */}
+      {selectedSection && (
+        <div className="modal-overlay" onClick={() => setSelectedSection(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedSection(null)}>✕</button>
+            <div className="modal-header">
+              <span className="modal-title">
+                {selectedSection.course.department} {selectedSection.course.courseID} {selectedSection.sectionID} - {selectedSection.course.title}
+              </span>
+            </div>
+
+            <p>Professor: {selectedSection.professor[0] ?? "TBD"}</p>
+            <p>Location: {selectedSection.location}</p>
+            <p>Enrolled: {selectedSection.enrolled} / {selectedSection.capacity}</p>
+            <p>Credits: {selectedSection.course.creditHours}</p>
+            <p>Status: {selectedSection.isOpen ? "Open" : "Closed"}</p>
+            <p>Time: {sectionTimeStr(selectedSection)}</p>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
