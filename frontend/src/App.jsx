@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link} from "react-router-dom";
 import CalendarPage from "./CalendarPage";
 import "./App.css";
+import ProfileMenu from "./Profile";
+import LoginModal from "./LoginModal"
+import ProfileSettingsModal from "./ProfileSettingsModal"
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -76,6 +79,10 @@ export default function App() {
 
   // Show section details
   const [selectedSection, setSelectedSection] = useState(null);
+
+  // Profile
+  const [user, setUser] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Toggles a day in/out of the days filter array
   function toggleDay(day) {
@@ -241,12 +248,32 @@ export default function App() {
 
   // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
+
     <div>
+
+        {!user && (
+                                <LoginModal onLogin={setUser} />
+                      )}
+
       <nav className="nav">
         <span className="nav-title">TeamGravy</span>
         <Link to="/" onClick={() => loadSchedule()}>Search</Link>
         <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
       </nav>
+
+      <ProfileMenu
+        user={user}
+        onLogout={() => setUser(null)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
+
+      {showSettings && (
+        <ProfileSettingsModal
+          user={user}
+          onClose={() => setShowSettings(false)}
+          onUpdate={setUser}
+        />
+      )}
 
       <div className="sched-bar">
         <span>Schedule:</span>
