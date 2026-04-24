@@ -80,6 +80,24 @@ export default function App() {
   // Show section details
   const [selectedSection, setSelectedSection] = useState(null);
 
+  // Saved for later sections
+  // Initialize from localStorage
+  const [saved, setSaved] = useState(() => {
+    try {
+      const stored = localStorage.getItem("savedSections");
+      return stored ? new Map(JSON.parse(stored)) : new Map();
+    } catch { return new Map(); }
+  });
+  // Make it a collapsible list
+  const [savedOpen, setSavedOpen] = useState(false);
+
+  // Save to localStorage whenever saved changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("savedSections", JSON.stringify([...saved]));
+    } catch {}
+  }, [saved]);
+
   // Profile
   const [user, setUser] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -235,6 +253,16 @@ export default function App() {
     setLowCreditWarning(false);
   }
 
+  // save a section from search results for later
+  function toggleSave(s) {
+    const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
+    setSaved(prev => {
+      const next = new Map(prev);
+      next.has(id) ? next.delete(id) : next.set(id, s);
+      return next;
+    });
+  }
+
   // Set of IDs for sections currently in the schedule, used to show Add vs Remove
   // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
@@ -281,6 +309,7 @@ export default function App() {
         <button onClick={() => saveSchedule(scheduleName)}>Save</button>
         <button onClick={() => loadSavedSchedule(scheduleName)}>Load</button>
         <button onClick={() => newSchedule()}>New</button>
+        <button onClick={() => window.print()}>Download PDF</button>
       </div>
 
       <Routes>
@@ -401,11 +430,47 @@ export default function App() {
                 <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
                 <div className="metric-row"><span>Longest break</span><span>{schedule.longestBreak} min</span></div>
               </div>
+
+              {saved.size > 0 && (
+                <>
+                  <hr className="filter-divider" />
+                  <h2
+                    style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", padding: "10px 14px" }}
+                    onClick={() => setSavedOpen(prev => !prev)}
+                  >
+                    <span>SAVED FOR LATER ({saved.size})</span>
+                    <span>{savedOpen ? "▲" : "▼"}</span>
+                  </h2>
+                  {savedOpen && (
+                    <div className="schedule-items">
+                      {[...saved.values()].map((s, i) => (
+                        <div key={i} className="sched-item">
+                          <div className="sched-info">
+                            <div className="sched-code">{s.course.department} {s.course.courseID} {s.sectionID}</div>
+                            <div className="sched-name">{s.course.title}</div>
+                            <div className="sched-time" style={{ color: s.isOpen ? "var(--green)" : "var(--red)" }}>
+                              {s.isOpen ? "Open" : "Closed"}
+                            </div>
+                          </div>
+                          <button className="btn-remove" onClick={() => toggleSave(s)}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </aside>
 
           </div>
         } />
-        <Route path="/Calendar" element={<CalendarPage />} />
+
+        <Route path="/Calendar" element={
+          <CalendarPage
+            scheduleName={scheduleName}
+            saved={saved}
+            toggleSave={toggleSave}
+          />}
+        />
       </Routes>
 
       {/* High credit warning modal — fires when adding a section pushes the
