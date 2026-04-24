@@ -262,7 +262,7 @@ public class CourseController {
             String username = ctx.queryParam("username");
             String password = ctx.queryParam("password");
 
-            Profile profile = ProfileFileManager.getInstance().LoadProfile(username, password);
+            profile = ProfileFileManager.getInstance().LoadProfile(username, password);
 
             if (profile == null) {
                 ctx.status(401).json(Map.of("error", "Invalid credentials"));
@@ -294,13 +294,33 @@ public class CourseController {
 
         // PATCH /profile/update/{attribute}/{value}
         app.patch("/profile/update", ctx -> {
-            Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
+            try {
+                Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
 
-            body.forEach((key, value) -> {
-                profile.updateProfile(key, value);
-            });
+                String attribute = body.get("attribute");
+                String value = body.get("value");
 
-            ProfileFileManager.getInstance().SaveProfile(profile.getName(), profile);
+                String result = profile.updateProfile(attribute, value);
+
+                ctx.json(Map.of("result", result));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
+        app.post("/profile/save", ctx -> {
+            try {
+                boolean saveSuccess = ProfileFileManager.getInstance()
+                        .SaveProfile(profile.getName(), profile);
+                if (!saveSuccess) {
+                    ctx.status(404).json(Map.of("error", "Profile not saved"));
+                    return;
+                }
+                ctx.status(204).json(Map.of("success", true));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 }

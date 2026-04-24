@@ -30,6 +30,10 @@ export default function ProfileSettingsModal({ user, onClose, onUpdate }) {
     });
   }
 
+  async function saveProfile(){
+      const res = await fetch(`/profile/save/`, { method: "POST" });
+      }
+
   async function handleSave() {
     try {
       // Core fields
@@ -61,7 +65,7 @@ export default function ProfileSettingsModal({ user, onClose, onUpdate }) {
           prefs.showWarnings
         ]
       });
-
+      saveProfile();
       onClose();
 
     } catch (err) {
