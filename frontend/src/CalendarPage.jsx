@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 // Page for calendar view of schedule
-export default function CalendarPage() {
+export default function CalendarPage({ scheduleName, saved, toggleSave }) {
   
 const [schedule, setSchedule] = useState({ sections: [], activities: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
 const [compareMode, setCompareMode] = useState(false);
@@ -226,6 +226,10 @@ async function removeActivity(a) {
 
     return (
     <div className="calendar-page">
+      <div className="print-header">
+        <h2>{scheduleName ?? "My Schedule"}</h2>
+        <p>Total Credits: {schedule.totalCredits} · Days Without Class: {schedule.daysWithoutClass} · Longest Break: {schedule.longestBreak} min</p>
+      </div>
       <h1 style={{ color: "white" }}>Calendar</h1>
       <h2>Schedule</h2>
       <div className="metrics">
@@ -340,7 +344,30 @@ async function removeActivity(a) {
               </div>
             ))}
           </div>
+
         </div>
+
+        <br></br>
+        <hr style={{ borderColor: "var(--border)" }} />
+        {saved && saved.size > 0 && (
+          <div className="calendar-schedule" style={{ marginTop: "10px" }}>
+            <h2 style={{ marginTop: "10px" }}>Saved for Later ({saved?.size ?? 0})</h2>
+            <div className="schedule-items">
+              {[...saved.values()].map((s, i) => (
+                <div key={i} className="sched-item">
+                  <div className="sched-info">
+                    <div className="sched-code">{s.course.department} {s.course.courseID} {s.sectionID}</div>
+                    <div className="sched-name">{s.course.title}</div>
+                    <div className="sched-time" style={{ color: s.isOpen ? "var(--green)" : "var(--red)" }}>
+                      {s.isOpen ? "Open" : "Closed"}
+                    </div>
+                  </div>
+                  <button className="btn-remove" onClick={() => toggleSave(s)}>✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
     </div>
   );

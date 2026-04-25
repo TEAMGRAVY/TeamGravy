@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Routes, Route, Link} from "react-router-dom";
 import CalendarPage from "./CalendarPage";
 import "./App.css";
+import ProfileMenu from "./Profile";
+import LoginModal from "./LoginModal"
+import ProfileSettingsModal from "./ProfileSettingsModal"
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -36,11 +39,42 @@ function scheduleUrl(s) {
   return `/schedule/${s.course.department}/${s.course.courseID}/${s.sectionID}/${s.term}`;
 }
 
+// Converts "Wolfe, Britton D." → { first: "britton", last: "wolfe" }
+function parseProfName(name) {
+  if (!name) return null;
+  const parts = name.split(",");
+  if (parts.length < 2) return null;
+  const last  = parts[0].trim().toLowerCase();
+  const first = parts[1].trim().split(" ")[0].toLowerCase();
+  return { first, last };
+}
+
+// Builds a lookup map keyed on "firstname_lastname" from the RMP edges array
+function buildRmpMap(rmpData) {
+  const map = {};
+  for (const entry of rmpData) {
+    const node = entry.node;
+    if (!node) continue;
+    const first = node.firstName.trim().toLowerCase();
+    const last  = node.lastName.trim().toLowerCase();
+    map[`${first}_${last}`] = node;
+  }
+  return map;
+}
+
+// Returns a CSS color for the rating value
+function ratingColor(rating) {
+  if (rating >= 3.5) return "var(--green)";
+  if (rating >= 2.5) return "#e8c547";
+  return "var(--red)";
+}
+
 export default function App() {
   // Dropdown options populated from /courses on load
   const [departments, setDepartments] = useState([]);
   const [professors,  setProfessors]  = useState([]);
   const [terms,       setTerms]       = useState([]);
+  const [rmpMap,      setRmpMap]      = useState({});
 
   // Filter state maps to query param sent to /search
   const [codeQ,    setCodeQ]    = useState("");
@@ -78,6 +112,28 @@ export default function App() {
   // Show section details
   const [selectedSection, setSelectedSection] = useState(null);
 
+  // Saved for later sections
+  // Initialize from localStorage
+  const [saved, setSaved] = useState(() => {
+    try {
+      const stored = localStorage.getItem("savedSections");
+      return stored ? new Map(JSON.parse(stored)) : new Map();
+    } catch { return new Map(); }
+  });
+  // Make it a collapsible list
+  const [savedOpen, setSavedOpen] = useState(false);
+
+  // Save to localStorage whenever saved changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("savedSections", JSON.stringify([...saved]));
+    } catch {}
+  }, [saved]);
+
+  // Profile
+  const [user, setUser] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+
   // Toggles a day in/out of the days filter array
   function toggleDay(day) {
     setDays(prev =>
@@ -85,7 +141,7 @@ export default function App() {
     );
   }
 
-  // Load dropdown options from /courses and fetch the current schedule
+  // Load dropdown options from /courses, RMP data, and fetch the current schedule
   useEffect(() => {
     fetch("/courses")
       .then(r => r.json())
@@ -95,6 +151,12 @@ export default function App() {
         setProfessors([...new Set(raw.flatMap(c => c.faculty))].sort());
         setTerms([...new Set(raw.map(c => c.semester).filter(Boolean))].sort().reverse());
       });
+
+    fetch("/professors")
+      .then(r => r.json())
+      .then(data => setRmpMap(buildRmpMap(data)))
+      .catch(() => {});
+
     loadSchedule();
   }, []);
 
@@ -229,6 +291,16 @@ export default function App() {
     setLowCreditWarning(false);
   }
 
+  // save a section from search results for later
+  function toggleSave(s) {
+    const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
+    setSaved(prev => {
+      const next = new Map(prev);
+      next.has(id) ? next.delete(id) : next.set(id, s);
+      return next;
+    });
+  }
+
   // Set of IDs for sections currently in the schedule, used to show Add vs Remove
   // Includes term so sections from different semesters don't collide!!!!
   const scheduleIds = new Set(
@@ -242,12 +314,32 @@ export default function App() {
 
   // NOTE THAT MUCH OF THIS STYLIZATION WAS TWEAKED BY AI, ORIGINAL FORMATTING EXISTS IN TAG
   return (
+
     <div>
+
+        {!user && (
+                                <LoginModal onLogin={setUser} />
+                      )}
+
       <nav className="nav">
         <span className="nav-title">TeamGravy</span>
         <Link to="/" onClick={() => loadSchedule()}>Search</Link>
         <Link to="/calendar" onClick={() => loadSchedule()}>Calendar</Link>
       </nav>
+
+      <ProfileMenu
+        user={user}
+        onLogout={() => setUser(null)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
+
+      {showSettings && (
+        <ProfileSettingsModal
+          user={user}
+          onClose={() => setShowSettings(false)}
+          onUpdate={setUser}
+        />
+      )}
 
       <div className="sched-bar">
         <span>Schedule:</span>
@@ -255,6 +347,7 @@ export default function App() {
         <button onClick={() => saveSchedule(scheduleName)}>Save</button>
         <button onClick={() => loadSavedSchedule(scheduleName)}>Load</button>
         <button onClick={() => newSchedule()}>New</button>
+        <button onClick={() => window.print()}>Download PDF</button>
       </div>
 
       <Routes>
@@ -327,7 +420,11 @@ export default function App() {
                 {results.map((s, i) => {
                   const id = `${s.course.department}${s.course.courseID}${s.sectionID}${s.term}`;
                   const inSchedule = scheduleIds.has(id);
-                  const sameTitle = !inSchedule && scheduledTitles.has(s.course.title);
+                  const sameTitle  = !inSchedule && scheduledTitles.has(s.course.title);
+
+                  const parsed = parseProfName(s.professor[0]);
+                  const rmp    = parsed ? rmpMap[`${parsed.first}_${parsed.last}`] : null;
+
                   return (
                     <div key={i}
                       className={`result-item ${s.isOpen ? "" : "is-closed"} ${sameTitle ? "same-title" : ""}`}
@@ -336,9 +433,17 @@ export default function App() {
                       <div className="result-main">
                         <div className="result-code">{s.course.department} {s.course.courseID} {s.sectionID} · {s.term}</div>
                         <div className="result-name">{s.course.title}</div>
-                        <div className="result-meta">{s.professor[0] ?? "TBD"} · {sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}</div>
+                        <div className="result-meta">
+                          {s.professor[0] ?? "TBD"}
+                          {rmp && rmp.numRatings > 0 && (
+                            <span className="rmp-badge" style={{ color: ratingColor(rmp.avgRating), borderColor: ratingColor(rmp.avgRating) }}>
+                              ★ {rmp.avgRating.toFixed(1)} · {rmp.numRatings} ratings
+                            </span>
+                          )}
+                          {" · "}{sectionTimeStr(s)} · {s.course.creditHours} cr · {s.isOpen ? "Open" : "Closed"}
+                        </div>
                         <button className="btn-details" onClick={() => setSelectedSection(s)}>
-                            Show Details
+                          Show Details
                         </button>
                       </div>
                       {inSchedule ? (
@@ -348,6 +453,21 @@ export default function App() {
                       ) : (
                         <button className="btn-add" onClick={() => addToSchedule(s)}>Add</button>
                       )}
+                    <button
+                      className="btn-save"
+                      onClick={() => toggleSave(s)}
+                      style={{ color: saved.has(id) ? "var(--accent)" : "var(--sub)" }}
+                    >
+                                          {saved.has(id) ? (
+                                            <svg width="12" height="14" viewBox="0 0 12 16" fill="currentColor">
+                                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
+                                            </svg>
+                                          ) : (
+                                            <svg width="12" height="14" viewBox="0 0 12 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                              <path d="M2 0h8a2 2 0 0 1 2 2v14l-6-3-6 3V2a2 2 0 0 1 2-2z"/>
+                                            </svg>
+                                          )}
+                    </button>
                     </div>
                   );
                 })}
@@ -375,22 +495,53 @@ export default function App() {
                 <div className="metric-row"><span>Days without class</span><span>{schedule.daysWithoutClass}</span></div>
                 <div className="metric-row"><span>Longest break</span><span>{schedule.longestBreak} min</span></div>
               </div>
+
+              {saved.size > 0 && (
+                <>
+                  <hr className="filter-divider" />
+                  <h2
+                    style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", padding: "10px 14px" }}
+                    onClick={() => setSavedOpen(prev => !prev)}
+                  >
+                    <span>SAVED FOR LATER ({saved.size})</span>
+                    <span>{savedOpen ? "▲" : "▼"}</span>
+                  </h2>
+                  {savedOpen && (
+                    <div className="schedule-items">
+                      {[...saved.values()].map((s, i) => (
+                        <div key={i} className="sched-item">
+                          <div className="sched-info">
+                            <div className="sched-code">{s.course.department} {s.course.courseID} {s.sectionID}</div>
+                            <div className="sched-name">{s.course.title}</div>
+                            <div className="sched-time" style={{ color: s.isOpen ? "var(--green)" : "var(--red)" }}>
+                              {s.isOpen ? "Open" : "Closed"}
+                            </div>
+                          </div>
+                          <button className="btn-remove" onClick={() => toggleSave(s)}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </aside>
 
           </div>
         } />
-        <Route path="/Calendar" element={<CalendarPage />} />
+
+        <Route path="/Calendar" element={
+          <CalendarPage
+            scheduleName={scheduleName}
+            saved={saved}
+            toggleSave={toggleSave}
+          />}
+        />
       </Routes>
 
-      {/* High credit warning modal — fires when adding a section pushes the
-          student's total above the 18-credit recommended limit. Red styling
-          signals the more urgent of the two credit warnings. The ?. optional
-          chaining on lastAdded guards the brief render frame while the modal
-          closes and lastAdded is being cleared back to null. */}
+      {/* High credit warning modal */}
       {creditWarning && (
         <div className="modal-overlay" onClick={() => setCreditWarning(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-
             <div className="modal-header">
               <div className="modal-icon">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -401,7 +552,6 @@ export default function App() {
               </div>
               <span className="modal-title">Exceeds maximum credit hour limit</span>
             </div>
-
             <p className="modal-body">
               Adding{" "}
               <span className="modal-course">
@@ -411,30 +561,18 @@ export default function App() {
               <span className="modal-credits">{schedule.totalCredits} credits</span>,
               which exceeds the 18-credit recommended limit.
             </p>
-
             <div className="modal-actions">
-              <button className="btn-modal-keep" onClick={() => setCreditWarning(false)}>
-                Keep it
-              </button>
-              <button className="btn-modal-undo" onClick={undoAdd}>
-                Undo add
-              </button>
+              <button className="btn-modal-keep" onClick={() => setCreditWarning(false)}>Keep it</button>
+              <button className="btn-modal-undo" onClick={undoAdd}>Undo add</button>
             </div>
-
           </div>
         </div>
       )}
 
-      {/* Low credit warning modal — uses amber styling instead of red to
-          visually separate "dropped too low" from "went too high". Only
-          fires when the student actively crosses down through 12 credits,
-          so building a new schedule from scratch never triggers it. The ?.
-          optional chaining on lastRemoved guards the same brief closing
-          frame described above. */}
+      {/* Low credit warning modal */}
       {lowCreditWarning && (
         <div className="modal-overlay" onClick={() => setLowCreditWarning(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-
             <div className="modal-header">
               <div className="modal-icon modal-icon--warn">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -445,7 +583,6 @@ export default function App() {
               </div>
               <span className="modal-title">Below full-time credit minimum</span>
             </div>
-
             <p className="modal-body">
               Removing{" "}
               <span className="modal-course">
@@ -455,40 +592,65 @@ export default function App() {
               <span className="modal-credits">{schedule.totalCredits} credits</span>,
               which is below the 12-credit minimum required to be a full-time student.
             </p>
-
             <div className="modal-actions">
-              <button className="btn-modal-keep" onClick={() => setLowCreditWarning(false)}>
-                Keep removal
-              </button>
-              <button className="btn-modal-restore" onClick={undoRemove}>
-                Undo remove
-              </button>
+              <button className="btn-modal-keep" onClick={() => setLowCreditWarning(false)}>Keep removal</button>
+              <button className="btn-modal-restore" onClick={undoRemove}>Undo remove</button>
             </div>
-
           </div>
         </div>
       )}
 
       {/* Show section details modal */}
-      {selectedSection && (
-        <div className="modal-overlay" onClick={() => setSelectedSection(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedSection(null)}>✕</button>
-            <div className="modal-header">
-              <span className="modal-title">
-                {selectedSection.course.department} {selectedSection.course.courseID} {selectedSection.sectionID} - {selectedSection.course.title}
-              </span>
+      {selectedSection && (() => {
+        const parsed    = parseProfName(selectedSection.professor[0]);
+        const rmpDetail = parsed ? rmpMap[`${parsed.first}_${parsed.last}`] : null;
+        return (
+          <div className="modal-overlay" onClick={() => setSelectedSection(null)}>
+            <div className="modal-box" onClick={e => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setSelectedSection(null)}>✕</button>
+              <div className="modal-header">
+                <span className="modal-title">
+                  {selectedSection.course.department} {selectedSection.course.courseID} {selectedSection.sectionID} - {selectedSection.course.title}
+                </span>
+              </div>
+              <p>Professor: {selectedSection.professor[0] ?? "TBD"}</p>
+              <p>Location: {selectedSection.location}</p>
+              <p>Enrolled: {selectedSection.enrolled} / {selectedSection.capacity}</p>
+              <p>Credits: {selectedSection.course.creditHours}</p>
+              <p>Status: {selectedSection.isOpen ? "Open" : "Closed"}</p>
+              <p>Time: {sectionTimeStr(selectedSection)}</p>
+              {rmpDetail && (
+                <div className="modal-rmp">
+                  <div className="modal-rmp-row">
+                    <span>Professor Rating</span>
+                    <span style={{ color: ratingColor(rmpDetail.avgRating), fontFamily: "var(--mono)" }}>
+                      {rmpDetail.avgRating.toFixed(1)} / 5 ({rmpDetail.numRatings} ratings)
+                    </span>
+                  </div>
+                  <div className="modal-rmp-row">
+                    <span>Course Difficulty</span>
+                    <span style={{ fontFamily: "var(--mono)" }}>{rmpDetail.avgDifficulty.toFixed(1)} / 5</span>
+                  </div>
+                  <div className="modal-rmp-row">
+                    <span>Would take again</span>
+                    <span style={{ fontFamily: "var(--mono)" }}>
+                      {rmpDetail.wouldTakeAgainPercent >= 0 ? `${Math.round(rmpDetail.wouldTakeAgainPercent)}%` : "N/A"}
+                    </span>
+                  </div>
+                  <a
+                    className="modal-rmp-link"
+                    href={`https://www.ratemyprofessors.com/professor/${rmpDetail.legacyId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View on RateMyProfessors ↗
+                  </a>
+                </div>
+              )}
             </div>
-
-            <p>Professor: {selectedSection.professor[0] ?? "TBD"}</p>
-            <p>Location: {selectedSection.location}</p>
-            <p>Enrolled: {selectedSection.enrolled} / {selectedSection.capacity}</p>
-            <p>Credits: {selectedSection.course.creditHours}</p>
-            <p>Status: {selectedSection.isOpen ? "Open" : "Closed"}</p>
-            <p>Time: {sectionTimeStr(selectedSection)}</p>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

@@ -215,6 +215,7 @@ body {
 }
 
 .result-item.is-closed { opacity: 0.5; }
+.result-item.same-title { opacity: 0.4; }
 
 .result-main { flex: 1; }
 
@@ -231,6 +232,17 @@ body {
   font-size: 0.7rem;
   color: var(--sub);
   margin-top: 2px;
+}
+
+/* ── RMP rating badge ── */
+.rmp-badge {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  margin-left: 6px;
+  white-space: nowrap;
 }
 
 .btn-add {
@@ -264,8 +276,6 @@ body {
 }
 
 .btn-remove:hover { background: var(--red); color: #fff; }
-
-
 
 /* ── Schedule panel ── */
 .schedule-panel {
@@ -479,9 +489,7 @@ body {
   width: 100%;
 }
 
-.custom-activity input:focus {
-  border-color: var(--accent);
-}
+.custom-activity input:focus { border-color: var(--accent); }
 
 .custom-activity button {
   background: transparent;
@@ -497,13 +505,9 @@ body {
   margin: 0 auto;
 }
 
-.custom-activity button:hover {
-  background: var(--accent);
-  color: #000;
-}
+.custom-activity button:hover { background: var(--accent); color: #000; }
 
 /* ── Show More Button ── */
-
 .btn-details {
   background: transparent;
   border: none;
@@ -531,12 +535,11 @@ body {
   background: var(--surface);
 }
 
-/* Header */
 .calendar-header {
   display: grid;
   grid-template-columns: 60px repeat(5, 1fr);
 
-  height: 10vh;
+  height: 60px;
   overflow-y: auto;
 }
 
@@ -548,66 +551,43 @@ body {
   text-transform: uppercase;
 }
 
-/* Body */
 .calendar-body {
   display: grid;
   grid-template-columns: 60px repeat(5, 1fr);
-  height: 75vh;
+  height: calc(100vh - 120px);
   overflow-y: auto;
 }
 
-/* Time column */
-.time-column {
-  border-right: 1px solid var(--border);
-}
+.time-column { border-right: 1px solid var(--border); }
+.time-slot   { height: 32px; font-size: 0.58rem; }
+.grid-line   { height: 32px; }
 
-.time-slot {
-  height: 32px;   /* was 60px */
-  font-size: 0.58rem;
-}
-
-.grid-line {
-  height: 32px;   /* match time-slot */
-}
-
-/* Day columns */
 .day-column {
   position: relative;
   border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-
-/* Events */
 .event {
-    position: absolute;
-    left: 4px;
-    right: 4px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-
-    text-align: center;
-
-    border-radius: 8px;
-    padding: 4px 6px;
-    font-size: 0.65rem;
-    color: white;
-    overflow: hidden;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
-    transition: transform 0.15s ease;
-    cursor: pointer;
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 0.65rem;
+  color: white;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+  transition: transform 0.15s ease;
+  cursor: pointer;
 }
 
-.event:hover {
-  transform: translateY(-2px);
-}
-
-.event:hover .remove-block {
-  opacity: 1;
-}
+.event:hover { transform: translateY(-2px); }
+.event:hover .remove-block { opacity: 1; }
 
 .remove-block {
   font-size: 0.55rem;
@@ -616,30 +596,13 @@ body {
   text-align: center;
 }
 
-/* Class vs activity colors */
-.event.class {
-  background: linear-gradient(135deg, #ff5f6d, #c81d25);
-}
+.event.class    { background: linear-gradient(135deg, #ff5f6d, #c81d25); }
+.event.activity { background: linear-gradient(135deg, #4a9eff, #1b5ea8); }
 
-.event.activity {
-  background: linear-gradient(135deg, #4a9eff, #1b5ea8);
-}
+.calendar-schedule .sched-item { padding: 4px 8px; }
+.calendar-schedule .sched-name { display: none; }
 
-/* ── Calendar schedule list (more compact than search panel) ── */
-.calendar-schedule .sched-item {
-  padding: 4px 8px;
-}
-
-.calendar-schedule .sched-name {
-  display: none;
-}
-
-/* ── Credit warning modals ───────────────────────────────────────────────
-   Shared styles used by both the high credit (red) and low credit (amber)
-   modals. position: fixed on the overlay places it above all page content.
-   The modal-icon--warn modifier class overrides the icon color for the
-   low credit modal without needing a separate full class definition.
-────────────────────────────────────────────────────────────────────────── */
+/* ── Credit warning modals ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -694,8 +657,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Amber variant for the low credit modal — overrides only the colors,
-   everything else inherits from .modal-icon above. */
 .modal-icon--warn {
   background: rgba(240, 193, 75, 0.1);
   border-color: var(--yellow);
@@ -744,7 +705,6 @@ body {
 
 .btn-modal-keep:hover { border-color: var(--sub); color: var(--text); }
 
-/* Red undo button for the high credit modal */
 .btn-modal-undo {
   background: transparent;
   border: 1px solid var(--red);
@@ -759,7 +719,6 @@ body {
 
 .btn-modal-undo:hover { background: var(--red); color: #fff; }
 
-/* Amber restore button for the low credit modal */
 .btn-modal-restore {
   background: transparent;
   border: 1px solid var(--yellow);
@@ -773,4 +732,255 @@ body {
 }
 
 .btn-modal-restore:hover { background: var(--yellow); color: #000; }
+
+/* ── RMP section in details modal ── */
+.modal-rmp {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-rmp-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.modal-rmp-row span:first-child { color: var(--sub); }
+
+.modal-rmp-link {
+  font-size: 0.72rem;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.modal-rmp-link:hover { text-decoration: underline; }
 .result-item.same-title { opacity: 0.4; }
+
+@media print {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  body, html {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .nav, .sched-bar, .custom-activity,
+  .calendar-schedule, .metrics,
+  .calendar-page > h1, .calendar-page > h2,
+  .calendar-page > br, .calendar-page > hr,
+  .remove-block {
+    display: none !important;
+  }
+
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16px;
+    color: black;
+  }
+
+  .calendar, .calendar-body, .day-column, .time-column {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .calendar-page {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .time-slot,
+  .grid-line {
+    height: 30px;
+  }
+}
+
+.print-header {
+  display: none; /* hidden on screen, shown only when printing */
+}
+
+.btn-save {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--sub);
+  opacity: 0.6;
+  transition: all 0.15s;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.btn-save:hover { opacity: 1; color: var(--accent); }
+
+/* ── Profile (top-right) ── */
+.profile-container {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* Avatar */
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  font-size: 0.75rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+/* Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 42px;
+  right: 0;
+
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  overflow: hidden;
+
+  animation: fadeIn 0.12s ease;
+}
+
+/* Header */
+.profile-header {
+  padding: 10px;
+}
+
+.profile-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.profile-email {
+  font-size: 0.65rem;
+  color: var(--sub);
+}
+
+/* Divider */
+.profile-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Items */
+.profile-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  color: var(--text);
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.profile-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Overlay */
+.modal-overlay-profile {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 2000;
+}
+
+/* Modal box */
+.modal-profile {
+  width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+/* Inputs */
+.modal-profile input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.modal-profile input:focus {
+  border-color: var(--accent);
+}
+
+/* Button */
+.modal-profile button {
+  background: var(--accent);
+  border: none;
+  color: #000;
+
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Switch mode */
+.switch-mode {
+  font-size: 0.7rem;
+  color: var(--sub);
+  text-align: center;
+  cursor: pointer;
+}
+
+.switch-mode span:hover {
+  color: var(--accent);
+}

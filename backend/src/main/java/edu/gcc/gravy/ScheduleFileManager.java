@@ -2,10 +2,13 @@ package edu.gcc.gravy;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.time.LocalTime;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Manages saved schedule files in place of a database.
@@ -56,16 +59,21 @@ public class ScheduleFileManager {
         public String name;
         public String term;
         public List<ShortenedSection> sections;
-        //public List<Activity> activities;
+        public List<ShortenedActivity> activities;
 
         public ScheduleFileFormat(Schedule schedule){
             name = schedule.getScheduleName();
             term = schedule.getScheduleTerm();
+
             sections = new ArrayList<>();
             for (Section section : schedule.getScheduleSections()){
                 sections.add(new ShortenedSection(section));
             }
-            //activities = schedule.getScheduleActivities();
+
+            activities = new ArrayList<>();
+            for (Activity activity : schedule.getScheduleActivities()) {
+                activities.add(new ShortenedActivity(activity));
+            }
         }
 
         /**
@@ -79,9 +87,13 @@ public class ScheduleFileManager {
             for (ShortenedSection section : sections){
                 schedule.addSection(section.toSection(allSections));
             }
-//            for (Activity activity : activities){
-//                schedule.addActivity(activity);
-//            }
+
+            if (activities != null) {
+                for (ShortenedActivity activity : activities) {
+                    schedule.addActivity(activity.toActivity());
+                }
+            }
+
             return schedule;
         }
 
@@ -117,6 +129,29 @@ public class ScheduleFileManager {
                     }
                 }
                 return null;
+            }
+        }
+
+        public static class ShortenedActivity {
+            public String name;
+            public String startTime;
+            public String endTime;
+            public List<String> days;
+
+            public ShortenedActivity(Activity activity) {
+                this.name = activity.getName();
+                this.startTime = activity.getTime().getStartTime().toString();
+                this.endTime = activity.getTime().getEndTime().toString();
+                this.days = activity.getTime().getDays().stream()
+                        .map(Day::name)
+                        .collect(Collectors.toList());
+            }
+
+            public Activity toActivity() {
+                LocalTime start = LocalTime.parse(startTime);
+                LocalTime end = LocalTime.parse(endTime);
+                Set<Day> daySet = days.stream().map(Day::valueOf).collect(Collectors.toSet());
+                return new Activity(name, new TimeSlot(start, end, daySet));
             }
         }
 

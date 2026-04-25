@@ -9,6 +9,8 @@ export default defineConfig({
       '/search':   'http://localhost:7000',
       '/schedule': 'http://localhost:7000',
       '/health':   'http://localhost:7000',
+      '/professors': 'http://localhost:7000',
+      '/profile':  'http://localhost:7000'
     }
   }
 })
