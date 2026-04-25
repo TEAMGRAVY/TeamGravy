@@ -21,6 +21,7 @@ public class CourseController {
     // The active schedule for the current session
     private static Schedule schedule = new Schedule(null, "My Schedule", "2026_Spring");
     private static Profile profile = null;
+    private static Schedule previewSchedule = null;
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
                     (src, type, context) -> new JsonPrimitive(src.toString()))
@@ -245,6 +246,44 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
+        app.post("/schedule/load/preview/{scheduleName}", ctx -> {
+            try {
+                Schedule tempSchedule = loadSavedSchedule(
+                        ctx.pathParam("scheduleName")
+                );
+                if (tempSchedule == null) {
+                    ctx.status(404).json(Map.of("error", "Schedule not found"));
+                    return;
+                }
+                previewSchedule = tempSchedule;
+                ctx.status(204).json(Map.of("success", true));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+
+        app.get("/schedule/preview", ctx -> {
+            if (previewSchedule == null) {
+                ctx.status(404).json(Map.of("error", "No preview schedule loaded"));
+                return;
+            }
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(Map.of(
+                    "sections",         previewSchedule.getScheduleSections(),
+                    "activities",       previewSchedule.getScheduleActivities(),
+                    "totalCredits",     previewSchedule.getTotalCredits(),
+                    "daysWithoutClass", previewSchedule.getDaysWithoutClass(),
+                    "longestBreak",     previewSchedule.getLongestBreak()
+            )));
+        });
+
+
+        app.put("/schedule/preview", ctx -> {
+            Schedule temp = schedule;
+            schedule = previewSchedule;
+            previewSchedule = temp;
+        });
+
         // POST /schedule/save/{scheduleName} - Save the schedule.
         app.post("/schedule/save/{scheduleName}", ctx -> {
             boolean saveSuccess = saveSchedule(
@@ -257,7 +296,13 @@ public class CourseController {
             ctx.status(204).json(Map.of("success", true));
         });
 
-        // GET /schedule - Creates a new empty schedule object.
+        // POST /schedule/new - Creates a new empty schedule object.
+        app.post("/schedule/new", ctx -> {
+            schedule = new Schedule(null,
+                    "New Schedule",
+                    "2026_Spring");
+        });
+
         app.get("/profile", ctx -> {
             String username = ctx.queryParam("username");
             String password = ctx.queryParam("password");

@@ -130,8 +130,6 @@ public class ScheduleFileManager {
                 }
                 return null;
             }
-
-
         }
 
         public static class ShortenedActivity {

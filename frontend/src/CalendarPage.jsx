@@ -6,6 +6,8 @@ import "./App.css";
 export default function CalendarPage({ scheduleName, saved, toggleSave }) {
   
 const [schedule, setSchedule] = useState({ sections: [], activities: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
+const [compareMode, setCompareMode] = useState(false);
+const [previewSchedule, setPreviewSchedule] = useState(null);
 
 const DAY_LABELS = {
   MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu", FRIDAY: "Fri"
@@ -53,7 +55,21 @@ async function loadSchedule() {
     setSchedule(data);
   }
 
-  const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+async function loadPreviewSchedule(name) {
+  const res = await fetch(`/schedule/load/preview/${name}`, {
+    method: "POST"
+  });
+
+  if (!res.ok) {
+    console.error("Failed to load preview schedule");
+    return;
+  }
+
+  const preview = await fetch("/schedule/preview").then(r => r.json());
+  setPreviewSchedule(preview);
+}
+
+const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
   
 function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number);
@@ -87,11 +103,11 @@ async function removeActivity(a) {
 
   //const PX_PER_MIN = CALENDAR_HEIGHT / TOTAL_MINUTES;
   const PX_PER_MIN = 1.1;
-  function buildEventsForDay(day) {
+  function buildEventsForDay(scheduleObj, day) {
     const events = [];
 
     // Sections
-    schedule.sections.forEach(section => {
+    scheduleObj.sections.forEach(section => {
       section.time?.forEach(slot => {
         if (!slot.days.includes(day)) return;
 
@@ -109,7 +125,7 @@ async function removeActivity(a) {
     });
 
     // Activities
-    schedule.activities?.forEach(activity => {
+    scheduleObj.activities?.forEach(activity => {
       const slot = activity.time;
       if (!slot.days.includes(day)) return;
 
@@ -154,6 +170,58 @@ async function removeActivity(a) {
       const data = await res.json();
       setActivityMsg(data.error);
     }
+  }
+
+  function renderCalendar(scheduleObj, label) {
+    return (
+      <div className="calendar-instance">
+        <div className="calendar-label">{label}</div>
+
+        <div className="calendar">
+          {/* Header */}
+          <div className="calendar-header">
+            <div className="time-col"></div>
+            {DAYS.map(d => (
+              <div key={d} className="day-col-header">
+                {DAY_LABELS[d]}
+              </div>
+            ))}
+          </div>
+
+          <div className="calendar-body">
+            {/* Time column */}
+            <div className="time-column">
+              {timeBlocks.map(t => (
+                <div key={t} className="time-slot">
+                  {minutesToLabel(t)}
+                </div>
+              ))}
+            </div>
+
+            {/* Days */}
+            {DAYS.map(day => (
+              <div key={day} className="day-column">
+
+                {timeBlocks.map(t => (
+                  <div key={t} className="grid-line" />
+                ))}
+
+                {buildEventsForDay(scheduleObj, day).map((event, i) => (
+                  <div
+                    key={i}
+                    className={event.isActivity ? "event activity" : "event class"}
+                    style={{ top: event.top, height: event.height }}
+                  >
+                    {event.label}
+                  </div>
+                ))}
+
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
     return (
@@ -223,60 +291,35 @@ async function removeActivity(a) {
       <br/>
       <hr />
       <br/>
+      <div className="compare-bar">
+        <button onClick={() => setCompareMode(prev => !prev)}>
+          {compareMode ? "Disable Compare" : "Compare Schedules"}
+        </button>
+
+        {compareMode && (
+          <input
+            placeholder="Schedule name..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                loadPreviewSchedule(e.target.value);
+              }
+            }}
+          />
+        )}
+      </div>
+
       <h2 style={{ color: "white" }}>Weekly Schedule Grid</h2>
-      <div className="calendar">
-        {/* Header */}
-        <div className="calendar-header">
-          <div className="time-col"></div>
-          {DAYS.map(d => (
-            <div key={d} className="day-col-header">
-              {DAY_LABELS[d]}
-            </div>
-          ))}
-        </div>
+      <div className={`calendar-wrapper ${compareMode ? "compare" : ""}`}>
+        <div className="calendar-scroll">
 
-        <div className="calendar-body">
-          {/* Time labels */}
-          <div className="time-column">
-            {timeBlocks.map(t => (
-              <div key={t} className="time-slot">
-                {minutesToLabel(t)}
-              </div>
-            ))}
-          </div>
+          {renderCalendar(schedule, "Primary")}
 
-          {/* Day columns */}
-          {DAYS.map(day => (
-            <div key={day} className="day-column">
-
-              {/* Grid lines */}
-              {timeBlocks.map(t => (
-                <div key={t} className="grid-line" />
-              ))}
-
-              {/* Events */}
-              {buildEventsForDay(day).map((event, i) => (
-                <div
-                  key={i}
-                  className={event.isActivity ? "event activity" : "event class"}
-                  style={{
-                    top: event.top,
-                    height: event.height
-                  }}
-                  onClick={() => event.isActivity
-                    ? removeActivity(event.activity)
-                    : removeFromSchedule(event.section)
-                  }
-                >
-                  {event.label}
-                  <div className="remove-block">Remove</div>
-                </div>
-              ))}
-
-            </div>
-          ))}
+          {compareMode && previewSchedule && (
+            renderCalendar(previewSchedule, "Preview")
+          )}
         </div>
       </div>
+
       <hr />
 
       <div className="calendar-schedule">
