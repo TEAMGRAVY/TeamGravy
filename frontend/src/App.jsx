@@ -60,6 +60,7 @@ export default function App() {
 
   // Schedule state (sections + metrics from schedule)
   const [schedule, setSchedule] = useState({ sections: [], totalCredits: 0, daysWithoutClass: 5, longestBreak: 0 });
+
   const [schedMsg, setSchedMsg] = useState("");
   const [scheduleName, setScheduleName] = useState("My Schedule");
 

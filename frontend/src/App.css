@@ -407,6 +407,42 @@ body {
   margin-top: 20px;
 }
 
+.calendar-wrapper {
+  height: 75vh;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ONE scroll container */
+.calendar-scroll {
+  display: flex;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Each calendar instance */
+.calendar-instance {
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Compare mode = split */
+.calendar-wrapper.compare .calendar-instance {
+  min-width: 50%;
+  border-right: 1px solid var(--border);
+}
+
+/* Label */
+.calendar-label {
+  text-align: center;
+  font-size: 0.75rem;
+  padding: 6px;
+  color: var(--sub);
+  border-bottom: 1px solid var(--border);
+}
+
 /* ── Add Activity Form ── */
 .custom-activity {
   background: var(--surface);
