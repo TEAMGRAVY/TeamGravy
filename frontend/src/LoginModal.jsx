@@ -1,7 +1,8 @@
 import {useState} from "react";
 
 export default function LoginModal({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | register
+  const BASE = import.meta.env.VITE_BACKEND_URL;
+  const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -11,9 +12,9 @@ export default function LoginModal({ onLogin }) {
       let res;
 
       if (mode === "login") {
-        res = await fetch(`/profile?username=${username}&password=${password}`);
+        res = await fetch(`${BASE}/profile?username=${username}&password=${password}`);
       } else {
-        res = await fetch("/profile/new", {
+        res = await fetch(`${BASE}/profile/new`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
@@ -35,9 +36,7 @@ export default function LoginModal({ onLogin }) {
 
   return (
     <div className="modal-overlay-profile">
-
       <div className="modal-profile">
-
         <h2>{mode === "login" ? "Sign In" : "Create Profile"}</h2>
 
         <input
@@ -70,9 +69,7 @@ export default function LoginModal({ onLogin }) {
             </span>
           )}
         </div>
-
       </div>
-
     </div>
   );
 }
