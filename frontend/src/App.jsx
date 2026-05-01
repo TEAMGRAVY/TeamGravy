@@ -41,24 +41,33 @@ function scheduleUrl(s) {
 
 // Converts "Wolfe, Britton D." → { first: "britton", last: "wolfe" }
 function parseProfName(name) {
-  if (!name) return null;
+  if (!name || typeof name !== "string") return null;
+
   const parts = name.split(",");
   if (parts.length < 2) return null;
-  const last  = parts[0].trim().toLowerCase();
-  const first = parts[1].trim().split(" ")[0].toLowerCase();
+
+  const last = parts[0].trim().toLowerCase();
+  const first = parts[1].trim().split(" ")[0]?.toLowerCase();
+
+  if (!first || !last) return null;
+
   return { first, last };
 }
 
 // Builds a lookup map keyed on "firstname_lastname" from the RMP edges array
 function buildRmpMap(rmpData) {
   const map = {};
-  for (const entry of rmpData) {
-    const node = entry.node;
-    if (!node) continue;
+
+  for (const entry of rmpData || []) {
+    const node = entry?.node;
+    if (!node?.firstName || !node?.lastName) continue;
+
     const first = node.firstName.trim().toLowerCase();
     const last  = node.lastName.trim().toLowerCase();
+
     map[`${first}_${last}`] = node;
   }
+
   return map;
 }
 
