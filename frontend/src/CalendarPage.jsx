@@ -211,8 +211,13 @@ async function removeActivity(a) {
                     key={i}
                     className={event.isActivity ? "event activity" : "event class"}
                     style={{ top: event.top, height: event.height }}
+                    onClick={() => event.isActivity
+                        ? removeActivity(event.activity)
+                        : removeFromSchedule(event.section)
+                    }
                   >
                     {event.label}
+                    <div className="remove-block">Remove</div>
                   </div>
                 ))}
 
