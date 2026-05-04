@@ -106,32 +106,32 @@ export default function ProfileSettingsModal({ user, onClose, onUpdate }) {
         <div className="settings-section">
           <h4>Preferences</h4>
 
-          <label>
+          <div className="settings-row">
+            <label>
+            <span>Dark Mode</span>
             <input
               type="checkbox"
               checked={prefs.darkMode}
               onChange={() => togglePref("darkMode")}
             />
-            Dark Mode
-          </label>
-
-          <label>
+            </label>
+            <label>
+            <span>Show Longest Break</span>
             <input
               type="checkbox"
               checked={prefs.longestBreak}
               onChange={() => togglePref("longestBreak")}
             />
-            Optimize for Long Breaks
-          </label>
-
-          <label>
+            </label>
+            <label>
+            <span>Show Credit Warnings</span>
             <input
               type="checkbox"
               checked={prefs.showWarnings}
               onChange={() => togglePref("showWarnings")}
             />
-            Show Credit Warnings
-          </label>
+            </label>
+          </div>
         </div>
 
         <div className="modal-actions">

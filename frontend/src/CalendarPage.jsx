@@ -297,13 +297,17 @@ async function removeActivity(a) {
       <hr />
       <br/>
       <div className="compare-bar">
-        <button onClick={() => setCompareMode(prev => !prev)}>
+        <button
+          className="btn-secondary"
+          onClick={() => setCompareMode(prev => !prev)}
+        >
           {compareMode ? "Disable Compare" : "Compare Schedules"}
         </button>
 
         {compareMode && (
           <input
-            placeholder="Schedule name..."
+            className="input-compact"
+            placeholder="Enter schedule name..."
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 loadPreviewSchedule(e.target.value);

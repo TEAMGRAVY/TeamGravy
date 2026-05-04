@@ -935,15 +935,17 @@ body {
 
 /* Modal box */
 .modal-profile {
-  width: 320px;
+  width: 340px;
+
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
 
-  padding: 18px;
+  padding: 20px 22px;
+
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
@@ -958,19 +960,44 @@ body {
   border-radius: 4px;
 }
 
+.modal-profile h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: center;
+}
+
+.modal-profile input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  font-size: 0.75rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
 .modal-profile input:focus {
   border-color: var(--accent);
 }
 
 /* Button */
 .modal-profile button {
-  background: var(--accent);
-  border: none;
-  color: #000;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
 
+  font-size: 0.72rem;
   padding: 6px;
+
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modal-profile button:hover {
+  background: var(--accent);
+  color: #000;
 }
 
 /* Switch mode */
@@ -983,4 +1010,72 @@ body {
 
 .switch-mode span:hover {
   color: var(--accent);
+}
+
+/* ── Compare Bar ── */
+.compare-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+  margin-bottom: 10px;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* Reusable input style (matches filters) */
+.input-compact {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+
+  font-family: var(--sans);
+  font-size: 0.75rem;
+
+  padding: 5px 8px;
+  border-radius: 4px;
+
+  outline: none;
+  width: 180px;
+}
+
+.input-compact:focus {
+  border-color: var(--accent);
+}
+
+/* Secondary button (matches sched-bar buttons) */
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sub);
+
+  font-family: var(--sans);
+  font-size: 0.72rem;
+
+  padding: 5px 10px;
+  border-radius: 4px;
+
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.settings-row input {
+  accent-color: var(--accent);
 }
