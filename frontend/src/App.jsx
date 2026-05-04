@@ -338,7 +338,7 @@ export default function App() {
 
       <ProfileMenu
         user={user}
-        onLogout={() => setUser(null)}
+        onLogout={() => {setUser(null); newSchedule()}}
         onOpenSettings={() => setShowSettings(true)}
       />
 
